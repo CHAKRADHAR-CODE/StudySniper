@@ -93,22 +93,16 @@
               "day": 1,
               "tasks": [
                 {
-                  "task": "Definition and Main Functions of an Operating System",
-                  "goal": "Understand the definition and main functions of an operating system",
+                  "task": "What is a DBMS? Compare file systems vs. database systems",
+                  "goal": "Understand the basics of DBMS",
                   "duration": "2h",
                   "time": "09:00 AM"
                 },
                 {
-                  "task": "Read notes on Definition and Main Functions of an Operating System",
-                  "goal": "Complete reading of notes on the topic",
+                  "task": "Read DBMS importance and description",
+                  "goal": "Familiarize with DBMS importance and description",
                   "duration": "1h",
-                  "time": "02:00 PM"
-                },
-                {
-                  "task": "Practice problems on Definition and Main Functions of an Operating System",
-                  "goal": "Solve 10 practice problems on the topic",
-                  "duration": "2h",
-                  "time": "04:00 PM"
+                  "time": "10:00 AM"
                 }
               ]
             },
@@ -116,22 +110,16 @@
               "day": 2,
               "tasks": [
                 {
-                  "task": "Structure of an Operating System",
-                  "goal": "Understand the structure of an operating system",
+                  "task": "Advantages of DBMS and its applications",
+                  "goal": "Understand the benefits of DBMS",
                   "duration": "2h",
                   "time": "09:00 AM"
                 },
                 {
-                  "task": "Read notes on Structure of an Operating System",
-                  "goal": "Complete reading of notes on the topic",
+                  "task": "Read DBMS applications",
+                  "goal": "Familiarize with DBMS applications",
                   "duration": "1h",
-                  "time": "02:00 PM"
-                },
-                {
-                  "task": "Watch video on Structure of an Operating System",
-                  "goal": "Watch a video on the topic",
-                  "duration": "1h",
-                  "time": "04:00 PM"
+                  "time": "11:00 AM"
                 }
               ]
             },
@@ -139,22 +127,16 @@
               "day": 3,
               "tasks": [
                 {
-                  "task": "Types of Operating Systems",
-                  "goal": "Understand the different types of operating systems",
+                  "task": "Database languages",
+                  "goal": "Understand database languages",
                   "duration": "2h",
                   "time": "09:00 AM"
                 },
                 {
-                  "task": "Read notes on Types of Operating Systems",
-                  "goal": "Complete reading of notes on the topic",
+                  "task": "Read DDL, DML, DCL, TCL, and view definition language",
+                  "goal": "Familiarize with database languages",
                   "duration": "1h",
-                  "time": "02:00 PM"
-                },
-                {
-                  "task": "Practice problems on Types of Operating Systems",
-                  "goal": "Solve 10 practice problems on the topic",
-                  "duration": "2h",
-                  "time": "04:00 PM"
+                  "time": "11:00 AM"
                 }
               ]
             },
@@ -162,22 +144,16 @@
               "day": 4,
               "tasks": [
                 {
-                  "task": "System Calls",
-                  "goal": "Understand system calls and their importance",
+                  "task": "Database system structure",
+                  "goal": "Understand database system structure",
                   "duration": "2h",
                   "time": "09:00 AM"
                 },
                 {
-                  "task": "Read notes on System Calls",
-                  "goal": "Complete reading of notes on the topic",
+                  "task": "Read database system components",
+                  "goal": "Familiarize with database system components",
                   "duration": "1h",
-                  "time": "02:00 PM"
-                },
-                {
-                  "task": "Practice problems on System Calls",
-                  "goal": "Solve 10 practice problems on the topic",
-                  "duration": "2h",
-                  "time": "04:00 PM"
+                  "time": "11:00 AM"
                 }
               ]
             },
@@ -185,16 +161,16 @@
               "day": 5,
               "tasks": [
                 {
-                  "task": "Revision of all topics",
-                  "goal": "Revision of all topics covered so far",
-                  "duration": "4h",
+                  "task": "3 Levels of Data Abstraction",
+                  "goal": "Understand data abstraction levels",
+                  "duration": "2h",
                   "time": "09:00 AM"
                 },
                 {
-                  "task": "Practice problems on all topics",
-                  "goal": "Solve 20 practice problems on all topics",
-                  "duration": "4h",
-                  "time": "02:00 PM"
+                  "task": "Read physical, logical, and view levels",
+                  "goal": "Familiarize with data abstraction levels",
+                  "duration": "1h",
+                  "time": "11:00 AM"
                 }
               ]
             },
@@ -202,22 +178,39 @@
               "day": 6,
               "tasks": [
                 {
-                  "task": "Practice problems on all topics",
-                  "goal": "Solve 20 practice problems on all topics",
-                  "duration": "4h",
+                  "task": "Roles and responsibilities of Database administrators",
+                  "goal": "Understand DBA roles and responsibilities",
+                  "duration": "2h",
                   "time": "09:00 AM"
                 },
                 {
-                  "task": "Mock exam",
-                  "goal": "Take a mock exam to assess knowledge",
+                  "task": "Read DBA tasks",
+                  "goal": "Familiarize with DBA tasks",
+                  "duration": "1h",
+                  "time": "11:00 AM"
+                }
+              ]
+            },
+            {
+              "day": 7,
+              "tasks": [
+                {
+                  "task": "Practice DBMS questions",
+                  "goal": "Practice DBMS concepts",
                   "duration": "3h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Review all DBMS topics",
+                  "goal": "Review DBMS concepts",
+                  "duration": "2h",
                   "time": "02:00 PM"
                 }
               ]
             }
           ],
-          "insights": "Stay focused and motivated, and make sure to take breaks to avoid burnout. Practice problems are essential to understanding the material, so allocate sufficient time for them. Review and revise regularly to reinforce your learning.",
-          "local_saved_at": "2026-05-10T08:23:51.265Z"
+          "insights": "Stay focused and organized, and make sure to review all topics before the exam. Practice as many questions as you can to build your confidence.",
+          "local_saved_at": "2026-05-10T09:20:33.914Z"
         }
       },
       "aiAnalysis": {
@@ -246,6 +239,42 @@
             }
           ],
           "local_saved_at": "2026-05-10T08:23:51.266Z"
+        },
+        "1778404833915": {
+          "title": "Database Management System",
+          "topics": [
+            {
+              "name": "What is a DBMS? Compare file systems vs. database systems",
+              "importance": 90,
+              "description": "DBMS is software used to create, store, organize, and manage data in a database so it can be easily retrieved, updated, and kept secure."
+            },
+            {
+              "name": "Advantages of DBMS and its applications",
+              "importance": 95,
+              "description": "DBMS reduces data redundancy, ensures data consistency, improves data security, supports multiple users, provides backup and recovery, and easy data access."
+            },
+            {
+              "name": "Database languages",
+              "importance": 85,
+              "description": "Database languages include DDL, DML, DCL, TCL, and view definition language, which are used to create, modify, and delete database objects, insert, update, delete, and retrieve data, control access and permissions, manage transactions, and create and manage virtual tables."
+            },
+            {
+              "name": "Database system structure",
+              "importance": 80,
+              "description": "A database system structure consists of users, DBMS, database, query processor, storage manager, and disk storage, which work together to manage and retrieve data."
+            },
+            {
+              "name": "3 Levels of Data Abstraction",
+              "importance": 90,
+              "description": "The three levels of data abstraction are physical, logical, and view levels, which describe how data is stored, what data is stored, and what part of the database a user is allowed to see."
+            },
+            {
+              "name": "Roles and responsibilities of Database administrators",
+              "importance": 95,
+              "description": "A Database Administrator (DBA) is responsible for managing, maintaining, and ensuring the security, performance, and integrity of the database system."
+            }
+          ],
+          "local_saved_at": "2026-05-10T09:20:33.916Z"
         }
       }
     }

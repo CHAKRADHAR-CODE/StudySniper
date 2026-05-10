@@ -125,6 +125,32 @@ app.post('/api/auth/verify-otp', async (req, res) => {
   }
 });
 
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  try {
+    // 1. Verify user exists
+    try {
+      await admin.auth().getUserByEmail(email);
+    } catch (error) {
+      if (error.code === 'auth/user-not-found') {
+        return res.status(404).json({ error: 'No account found with this email address.' });
+      }
+      throw error;
+    }
+
+    // 2. Generate Reset Link
+    const resetLink = await admin.auth().generatePasswordResetLink(email);
+    
+    // 3. Send Premium Email
+    await mailService.sendPremiumResetLink(email, resetLink);
+    
+    res.json({ message: 'Restoration link delivered' });
+  } catch (error) {
+    console.error("[Auth Error] Forgot Password:", error.message);
+    res.status(500).json({ error: 'Failed to deliver restoration link' });
+  }
+});
+
 app.post('/api/onboarding-complete', async (req, res) => {
   const { userId, data } = req.body;
   try {

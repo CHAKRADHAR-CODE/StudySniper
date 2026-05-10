@@ -4,7 +4,6 @@ import path from 'path';
 import 'dotenv/config';
 
 // ─── Firebase Admin Initialization ──────────────────────────────────────────
-// ─── Firebase Admin Initialization ──────────────────────────────────────────
 try {
   if (admin.apps.length === 0) {
     const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'serviceAccount.json';
@@ -18,9 +17,13 @@ try {
 
     const serviceAccount = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
     
-    // Normalize private key (handles common formatting issues)
+    // Robust Private Key Normalization
     if (serviceAccount.private_key) {
-      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+      // Handles both escaped \n and literal newlines, ensuring standard format
+      serviceAccount.private_key = serviceAccount.private_key
+        .replace(/\\n/g, '\n')
+        .replace(/"/g, '')
+        .trim();
     }
 
     console.log(`[Firebase] Project ID: ${serviceAccount.project_id}`);
