@@ -6,27 +6,61 @@ const CHAT_SYSTEM_PROMPT = `You are StudySniper AI. Guide users concisely. Very 
 
 export const aiManager = {
   // SYLLABUS ANALYSIS
-  async analyzeSyllabus(content) {
+  async analyzeSyllabus(content, subjects = []) {
     const truncated = content.substring(0, 8000);
+    const subjectsContext = subjects.length > 0 ? `Selected subjects: ${subjects.join(", ")}.` : "";
+    
+    const prompt = `Perform a deep-dive neural analysis of the provided educational content.
+    ${subjectsContext}
+    
+    CRITICAL VALIDATION:
+    - You MUST set "isValid" to false if the uploaded content does NOT specifically and primarily relate to these subjects: ${subjects.join(", ")}.
+    - If the user uploads a document for a different subject (e.g., Biology instead of Math), set "isValid" to false and return "The uploaded PDF does not belong to the selected subject." in the "validationMessage".
+    - ONLY validated PDFs are allowed to continue. Be extremely strict.
+    
+    Return ONLY a JSON object with this structure:
+    {
+      "isValid": boolean,
+      "validationMessage": "string",
+      "title": "Overall Document Title",
+      "topics": [
+        {
+          "name": "Topic Name",
+          "subtopics": ["Subtopic 1", "Subtopic 2"],
+          "concepts": ["Concept 1", "Concept 2"],
+          "definitions": ["Def 1", "Def 2"],
+          "formulas": ["Formula 1"],
+          "importantQuestions": ["Q1", "Q2"],
+          "repeatedQuestions": ["RQ1"],
+          "difficulty": "Easy/Medium/Hard",
+          "weightage": 1-100,
+          "frequentlyAsked": boolean,
+          "description": "Brief summary"
+        }
+      ],
+      "overallDifficulty": "Easy/Medium/Hard",
+      "keyTakeaways": ["Point 1", "Point 2"]
+    }
+    
+    Content: ${truncated}`;
+
     try {
-      const prompt = `Analyze syllabus. Return ONLY JSON: { "title": "string", "topics": [{ "name": "string", "importance": 1-100, "description": "string" }] }. Content: ${truncated.substring(0, 5000)}`;
-      const response = await groqService.chat([{ role: "user", content: prompt }], "fast");
-      return this.parseJSON(response);
-    } catch (e) {
-      console.warn(`[AI Manager] Groq failed for syllabus: ${e.message}. Trying Gemini...`);
+      let response;
       try {
-        return await geminiService.analyzeContent(truncated, "syllabus");
-      } catch (geminiError) {
-        console.warn(`[AI Manager] Gemini failed for syllabus: ${geminiError.message}. Trying OpenRouter...`);
+        response = await groqService.chat([{ role: "user", content: prompt }], "fast");
+      } catch (e) {
+        console.warn(`[AI Manager] Groq failed for syllabus analysis, trying Gemini...`);
         try {
-          const prompt = `Analyze syllabus. Return ONLY JSON: { "title": "string", "topics": [{ "name": "string", "importance": 1-100, "description": "string" }] }. Content: ${truncated.substring(0, 5000)}`;
-          const response = await openrouterService.chat([{ role: "user", content: prompt }]);
-          return this.parseJSON(response);
-        } catch (orError) {
-          console.error(`[AI Manager] CRITICAL: All services failed for syllabus: ${orError.message}`);
-          throw orError;
+          return await geminiService.analyzeContent(prompt, "json");
+        } catch (gemErr) {
+          console.warn(`[AI Manager] Gemini failed, trying OpenRouter...`);
+          response = await openrouterService.chat([{ role: "user", content: prompt }]);
         }
       }
+      return this.parseJSON(response);
+    } catch (e) {
+      console.error(`[AI Manager] Syllabus analysis failed: ${e.message}`);
+      throw e;
     }
   },
 
@@ -36,53 +70,90 @@ export const aiManager = {
       const contextualMessages = [{ role: "system", content: CHAT_SYSTEM_PROMPT }, ...messages];
       return await groqService.chat(contextualMessages, "fast", true);
     } catch (error) {
-      return await geminiService.analyzeContent(messages[messages.length - 1].content, "chat");
+      try {
+        return await geminiService.analyzeContent(messages[messages.length - 1].content, "chat");
+      } catch (gemErr) {
+        return await openrouterService.chat(messages);
+      }
     }
   },
 
   // DYNAMIC ACADEMIC SCHEDULE
   async generateStudyPlan(studentData) {
     const totalDays = studentData.days || 7;
-    const prompt = `Create a ${totalDays}-day academic study plan.
-    Return ONLY a JSON object:
+    const confidence = JSON.stringify(studentData.confidenceLevels || {});
+    const preferredTime = studentData.preferredTime || "morning";
+    
+    const prompt = `YOU ARE THE STUDY SNIPER SCHEDULER ENGINE.
+    
+    MANDATORY OBJECTIVE: 
+    Generate a COMPLETE, day-by-day study schedule for EXACTLY ${totalDays} days.
+    
+    SYSTEM CONSTRAINTS (NON-NEGOTIABLE):
+    1. TOTAL DURATION: ${totalDays} Days. You MUST output a schedule with EXACTLY ${totalDays} day objects in the "schedule" array.
+    2. NO SKIPPING: If the request is for ${totalDays} days, you must provide Day 1, Day 2, ..., up to Day ${totalDays}.
+    3. DAILY INTENSITY: Exactly ${studentData.studyHoursPerDay} Hours/Day. Do not exceed this.
+    4. EXAM IDENTITY: ${studentData.examName}.
+    5. PREFERRED WINDOW: ${preferredTime}.
+    6. TOPICS TO COVER: ${JSON.stringify(studentData.topics || [])}.
+    7. SUBJECT CONFIDENCE: ${confidence}.
+    
+    PLANNING LOGIC (STRICT RULES):
+    1. EXACT DAYS MATCH: You MUST generate EXACTLY ${totalDays} day items. Not one less, not one more. If ${totalDays} is 7, you must output 7 days.
+    2. TIME DISTRIBUTION: Distribute the provided topics evenly across ALL ${totalDays} days. DO NOT compress all topics into the first few days.
+    3. STUDY HOURS: Each day MUST contain exactly ${studentData.studyHoursPerDay} hours of study sessions. Do not exceed this limit.
+    4. CONFIDENCE WEIGHTING: Allocate more time to subjects with low confidence.
+    5. BREAKS: Add brief breaks automatically within each daily session.
+    6. REVISION CYCLE: Use the final 1 to 2 days explicitly for revision, mock tests, and reviewing important concepts.
+    
+    OUTPUT FORMAT:
+    - Return ONLY a valid JSON object.
+    - The "schedule" array MUST contain EXACTLY ${totalDays} objects.
+    - Day numbering MUST go from 1 to ${totalDays} sequentially.
+    
+    JSON STRUCTURE:
     {
       "schedule": [
         { 
           "day": 1, 
-          "tasks": [{ "task": "Topic Name", "goal": "Goal", "duration": "2h", "time": "09:00 AM" }]
+          "label": "Day 1 of ${totalDays}",
+          "tasks": [
+            { "task": "...", "duration": "2h", "time": "09", "type": "...", "priority": "High" }
+          ]
+        },
+        ... 
+        { 
+          "day": ${totalDays}, 
+          "label": "Day ${totalDays} of ${totalDays}: Final Revision",
+          "tasks": [...] 
         }
       ],
-      "insights": "Short advice"
+      "analytics": {
+        "weakSubjectFocus": "...",
+        "studyIntensity": "Beast Mode",
+        "estimatedReadiness": "0-100%"
+      }
     }
-    Generate EXACTLY ${totalDays} days. Exam: ${studentData.examName}. Topics: ${JSON.stringify(studentData.topics || [])}`;
+    
+    CRITICAL: YOU MUST OUTPUT EVERY DAY FROM 1 TO ${totalDays} INDIVIDUALLY. SHORTENING THE SCHEDULE IS A CRITICAL FAILURE.`;
 
     try {
-      const response = await groqService.chat([{ role: "user", content: prompt }], "fast");
+      let response;
+      try {
+        response = await groqService.chat([{ role: "user", content: prompt }], "fast");
+      } catch (e) {
+        console.warn(`[AI Manager] Groq failed for plan generation, trying Gemini...`);
+        try {
+          return await geminiService.analyzeContent(prompt, "json");
+        } catch (gemErr) {
+          console.warn(`[AI Manager] Gemini failed, trying OpenRouter...`);
+          response = await openrouterService.chat([{ role: "user", content: prompt }]);
+        }
+      }
       return this.parseJSON(response);
     } catch (e) {
-      console.warn(`[AI Manager] Groq failed for plan: ${e.message}. Trying Gemini...`);
-      try {
-        return await geminiService.analyzeContent(prompt, "json");
-      } catch (geminiError) {
-        console.error(`[AI Manager] All AI services failed for plan. Using local fallback engine.`);
-        // LOCAL HEURISTIC FALLBACK (Guarantees reflection in UI)
-        const topics = studentData.topics || [];
-        const schedule = [];
-        for (let i = 1; i <= totalDays; i++) {
-          const topic = topics[(i - 1) % (topics.length || 1)] || { name: "General Review" };
-          schedule.push({
-            day: i,
-            tasks: [
-              { task: `Mastering: ${topic.name || "Core Concepts"}`, goal: "Deep dive and practice", duration: "3h", time: "09:00 AM" },
-              { task: "Quick Revision & Quiz", goal: "Test retention", duration: "1h", time: "02:00 PM" }
-            ]
-          });
-        }
-        return {
-          schedule,
-          insights: "AI generation was limited, but we've built a balanced strategic schedule for you."
-        };
-      }
+      console.error(`[AI Manager] Plan generation failed: ${e.message}`);
+      throw e;
     }
   },
 
@@ -107,7 +178,12 @@ export const aiManager = {
       const response = await groqService.chat([{ role: "user", content: prompt }], "fast");
       return this.parseJSON(response);
     } catch (e) {
-      return await geminiService.analyzeContent(prompt, "json");
+      try {
+        return await geminiService.analyzeContent(prompt, "json");
+      } catch (gemErr) {
+        const response = await openrouterService.chat([{ role: "user", content: prompt }]);
+        return this.parseJSON(response);
+      }
     }
   },
 
@@ -136,7 +212,12 @@ export const aiManager = {
       const response = await groqService.chat([{ role: "user", content: prompt }], "fast");
       return this.parseJSON(response);
     } catch (e) {
-      return await geminiService.analyzeContent(prompt, "json");
+      try {
+        return await geminiService.analyzeContent(prompt, "json");
+      } catch (gemErr) {
+        const response = await openrouterService.chat([{ role: "user", content: prompt }]);
+        return this.parseJSON(response);
+      }
     }
   },
 

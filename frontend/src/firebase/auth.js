@@ -1,10 +1,11 @@
-// src/firebase/auth.js
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   updateProfile,
+  sendEmailVerification,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./config";
@@ -13,6 +14,9 @@ import { auth, db } from "./config";
 export const registerUser = async (email, password, displayName) => {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
+
+  // Send verification email
+  await sendEmailVerification(user);
 
   // Update display name
   await updateProfile(user, { displayName });
@@ -27,7 +31,11 @@ export const registerUser = async (email, password, displayName) => {
     streak: 0,
     totalStudyHours: 0,
     preparednessScore: 0,
+    emailVerified: false
   });
+
+  // Immediately sign out to force them to verify email before accessing the app
+  await signOut(auth);
 
   return user;
 };
@@ -35,7 +43,23 @@ export const registerUser = async (email, password, displayName) => {
 // Login user
 export const loginUser = async (email, password) => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  return userCredential.user;
+  const user = userCredential.user;
+  
+  // Check if email is verified
+  if (!user.emailVerified) {
+    await signOut(auth);
+    throw new Error("EMAIL_NOT_VERIFIED");
+  }
+
+  // Update verification status in firestore if it changed
+  await setDoc(doc(db, "users", user.uid, "profile", "info"), { emailVerified: true }, { merge: true });
+
+  return user;
+};
+
+// Password Reset
+export const sendResetEmail = async (email) => {
+  await sendPasswordResetEmail(auth, email);
 };
 
 // Logout user

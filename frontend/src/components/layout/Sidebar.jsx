@@ -13,11 +13,8 @@ import Logo from "../common/Logo";
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
   { to: "/study-plan", icon: Calendar, label: "Schedule" },
-  { to: "/exam-prep", icon: ShieldCheck, label: "Strategy" },
-  { to: "/upload", icon: Upload, label: "Analyze" },
   { to: "/question-bank", icon: Target, label: "Question Bank" },
   { to: "/cheatsheets", icon: Zap, label: "Cheat Sheets" },
-  { to: "/onboarding", icon: Target, label: "Setup" },
 ];
 
 const Sidebar = () => {

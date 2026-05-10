@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../services/authService";
+import { sendResetEmail } from "../firebase/auth";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, ArrowRight, ShieldCheck, Moon, Sun, ChevronLeft, CheckCircle2 } from "lucide-react";
@@ -22,7 +22,7 @@ const ForgotPassword = () => {
     
     setLoading(true);
     try {
-      await authService.forgotPassword(email);
+      await sendResetEmail(email);
       setSubmitted(true);
       toast.success("Neural restoration link delivered!");
       setResendCooldown(60);
@@ -33,8 +33,8 @@ const ForgotPassword = () => {
         });
       }, 1000);
     } catch (err) {
-      const msg = err.response?.data?.error || "Neural link delivery failed.";
-      toast.error(msg);
+      console.error(err);
+      toast.error("Neural link delivery failed. Verify your email.");
     } finally {
       setLoading(false);
     }

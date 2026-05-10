@@ -14,7 +14,6 @@ import Onboarding from "./pages/Onboarding";
 import Upload from "./pages/Upload";
 import StudyPlan from "./pages/StudyPlan";
 import CheatSheets from "./pages/CheatSheets";
-import ExamPrep from "./pages/ExamPrep";
 import QuestionBank from "./pages/QuestionBank";
 import ForgotPassword from "./pages/ForgotPassword";
 
@@ -53,7 +52,6 @@ const AppRoutes = () => {
       <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
       <Route path="/study-plan" element={<ProtectedRoute><StudyPlan /></ProtectedRoute>} />
       <Route path="/cheatsheets" element={<ProtectedRoute><CheatSheets /></ProtectedRoute>} />
-      <Route path="/exam-prep" element={<ProtectedRoute><ExamPrep /></ProtectedRoute>} />
       <Route path="/question-bank" element={<ProtectedRoute><QuestionBank /></ProtectedRoute>} />
 
       {/* Fallback */}

@@ -1,56 +1,64 @@
 // src/pages/Onboarding.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { saveOnboardingData, getOnboardingData } from "../firebase/firestore";
 import axios from "axios";
 import toast from "react-hot-toast";
 import AppLayout from "../components/layout/AppLayout";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight, ChevronLeft, Plus, X, Calendar, BookOpen,
-  Clock, Target, CheckCircle, Sparkles
+  Clock, Target, CheckCircle, Sparkles, TrendingUp, Brain, ShieldCheck
 } from "lucide-react";
 
 // ── Step indicators ───────────────────────────────────────────────────────────
 const StepDot = ({ active, done, label, idx }) => (
-  <div className="flex flex-col items-center gap-1">
+  <div className="flex flex-col items-center gap-2">
     <div
-      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-display transition-all duration-300 ${
-        done ? "bg-green-500 text-white" :
-        active ? "bg-gradient-to-br from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/30" :
-        "glass text-zinc-500"
+      className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-bold font-display transition-all duration-500 ${
+        done ? "bg-[var(--green)] text-black" :
+        active ? "bg-[var(--purple)] text-white shadow-[0_0_20px_rgba(175,82,222,0.3)]" :
+        "bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-muted)]"
       }`}
     >
-      {done ? <CheckCircle size={14} /> : idx + 1}
+      {done ? <CheckCircle size={18} /> : idx + 1}
     </div>
-    <span className={`text-xs hidden sm:block ${active ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}>{label}</span>
+    <span className={`text-[10px] font-bold uppercase tracking-widest hidden sm:block ${active ? "text-[var(--purple)]" : "text-[var(--text-muted)]"}`}>{label}</span>
   </div>
 );
 
 const SubjectTag = ({ name, onRemove }) => (
-  <div className="flex items-center gap-1.5 badge badge-purple py-1.5">
-    <span>{name}</span>
-    <button onClick={() => onRemove(name)} className="hover:text-red-400 transition-colors"><X size={11} /></button>
-  </div>
+  <motion.div 
+    initial={{ opacity: 0, scale: 0.8 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.8 }}
+    className="flex items-center gap-2 px-4 py-2 bg-[var(--purple)]/10 border border-[var(--purple)]/20 rounded-xl"
+  >
+    <span className="text-sm font-bold text-[var(--purple)]">{name}</span>
+    <button onClick={() => onRemove(name)} className="hover:text-red-400 transition-colors"><X size={14} /></button>
+  </motion.div>
 );
 
 const ConfidenceSlider = ({ subject, value, onChange }) => (
-  <div className="glass rounded-xl p-4">
-    <div className="flex items-center justify-between mb-2">
-      <span className="text-sm font-medium text-[var(--text-primary)] font-body">{subject}</span>
-      <span className={`badge text-xs ${value >= 70 ? "badge-green" : value >= 40 ? "badge-amber" : "badge-red"}`}>
-        {value >= 70 ? "Confident" : value >= 40 ? "Moderate" : "Weak"} — {value}%
+  <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl p-6 hover:border-[var(--purple)]/30 transition-all">
+    <div className="flex items-center justify-between mb-4">
+      <span className="text-sm font-bold text-[var(--text-primary)]">{subject}</span>
+      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+        value >= 70 ? "bg-[var(--green)]/10 text-[var(--green)]" : 
+        value >= 40 ? "bg-[var(--amber)]/10 text-[var(--amber)]" : 
+        "bg-[var(--red)]/10 text-[var(--red)]"
+      }`}>
+        {value >= 70 ? "Expert" : value >= 40 ? "Improving" : "Needs Work"} — {value}%
       </span>
     </div>
-    <input
-      type="range"
-      min="0" max="100" value={value}
-      onChange={(e) => onChange(subject, Number(e.target.value))}
-      className="w-full accent-purple-500 h-1 cursor-pointer"
-    />
-    <div className="flex justify-between text-xs text-zinc-600 mt-1">
-      <span>Not confident</span>
-      <span>Very confident</span>
+    <div className="relative group">
+      <input
+        type="range"
+        min="0" max="100" value={value}
+        onChange={(e) => onChange(subject, Number(e.target.value))}
+        className="w-full h-2 bg-[var(--bg-surface)] rounded-full appearance-none cursor-pointer accent-[var(--purple)]"
+      />
     </div>
   </div>
 );
@@ -66,13 +74,28 @@ const Onboarding = () => {
   const [data, setData] = useState({
     examName: "",
     examDate: "",
+    examTime: "09:00",
     subjects: [],
     confidenceLevels: {},
     studyHoursPerDay: 4,
-    preferredTime: "evening",
+    preferredTime: "morning",
   });
 
   const [subjectInput, setSubjectInput] = useState("");
+
+  const daysLeft = useMemo(() => {
+    if (!data.examDate) return 0;
+    const diff = new Date(data.examDate) - new Date();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }, [data.examDate]);
+
+  const studyIntensity = useMemo(() => {
+    if (daysLeft === 0) return "N/A";
+    if (daysLeft < 7) return "Critical";
+    if (daysLeft < 30) return "High";
+    if (daysLeft < 90) return "Moderate";
+    return "Balanced";
+  }, [daysLeft]);
 
   useEffect(() => {
     const load = async () => {
@@ -80,14 +103,7 @@ const Onboarding = () => {
       try {
         const saved = await getOnboardingData(user.uid);
         if (saved) {
-          setData({
-            examName: saved.examName || "",
-            examDate: saved.examDate || "",
-            subjects: saved.subjects || [],
-            confidenceLevels: saved.confidenceLevels || {},
-            studyHoursPerDay: saved.studyHoursPerDay || 4,
-            preferredTime: saved.preferredTime || "evening",
-          });
+          setData(prev => ({ ...prev, ...saved }));
         }
       } catch {}
       setLoading(false);
@@ -125,46 +141,20 @@ const Onboarding = () => {
     if (data.subjects.length === 0) return toast.error("Add at least one subject");
     
     setSaving(true);
-    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-    
     try {
-      // 1. Try Firestore, but don't crash if it fails
-      try {
-        await saveOnboardingData(user.uid, data);
-        await refreshProfile();
-      } catch (dbErr) {
-        console.warn("Firestore save failed, using local storage fallback", dbErr);
-        localStorage.setItem(`onboarding_${user.uid}`, JSON.stringify(data));
-      }
-      
-      // 2. Trigger Backend Generation (Essential)
-      toast.loading("Architecting Exam Strategy...", { id: "prep" });
-      const response = await axios.post(`${API_BASE_URL}/onboarding-complete`, {
-        userId: user.uid,
-        data: data
-      });
-      
-      // Save plan to local storage for instant reflection if DB fails
-      if (response.data.plan) {
-        localStorage.setItem(`studyPlan_${user.uid}`, JSON.stringify(response.data.plan));
-      }
-      if (response.data.strategy) {
-        localStorage.setItem(`examPrepPlan_${user.uid}`, JSON.stringify(response.data.strategy));
-      }
-      
-      toast.success("Profile saved & Strategy generated!", { id: "prep" });
-      navigate("/dashboard");
+      await saveOnboardingData(user.uid, data);
+      await refreshProfile();
+      toast.success("Profile Setup Complete!");
+      navigate("/upload"); // Move to Analyze PDF section
     } catch (err) {
       console.error(err);
-      toast.error("Process partially failed. AI Strategy generated but DB sync pending.", { id: "prep" });
-      // Still navigate to dashboard if we have data
-      navigate("/dashboard");
+      toast.error("Failed to save profile");
     } finally {
       setSaving(false);
     }
   };
 
-  const steps = ["Exam Info", "Subjects", "Confidence", "Study Hours"];
+  const steps = ["Exam Hub", "Subject Core", "Neural Confidence", "Study Window"];
   const canNext = () => {
     if (step === 0) return data.examName && data.examDate;
     if (step === 1) return data.subjects.length > 0;
@@ -174,230 +164,279 @@ const Onboarding = () => {
   const minDate = new Date().toISOString().split("T")[0];
 
   if (loading) return (
-    <AppLayout title="Study Setup" subtitle="Configure your personalized study profile">
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="spinner w-8 h-8 mx-auto mb-3" />
-          <p className="text-zinc-500 text-sm">Loading your profile...</p>
-        </div>
+    <AppLayout>
+      <div className="flex flex-col items-center justify-center py-48 space-y-4">
+         <div className="w-12 h-12 border-2 border-[var(--purple)] border-t-transparent rounded-full animate-spin" />
+         <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Calibrating Setup Module...</p>
       </div>
     </AppLayout>
   );
 
   return (
-    <AppLayout title="Study Setup" subtitle="Configure your personalized study profile">
-      <div className="max-w-xl mx-auto">
+    <AppLayout>
+      <div className="max-w-3xl mx-auto space-y-12">
+        {/* Header */}
+        <header className="text-center space-y-4">
+          <div className="badge border-[var(--purple)]/30 text-[var(--purple)] inline-block mx-auto">Neural Initialization</div>
+          <h1 className="text-5xl font-display font-bold tracking-tight">Configure your <span className="text-[var(--text-secondary)]">Arsenal.</span></h1>
+          <p className="text-[var(--text-secondary)] text-lg font-medium">Step {step + 1} of 4: {steps[step]}</p>
+        </header>
+
         {/* Step indicators */}
-        <div className="flex items-center justify-between mb-10 relative">
-          <div className="absolute top-4 left-0 right-0 h-px bg-[var(--border)] -z-10" />
+        <div className="flex items-center justify-between relative max-w-xl mx-auto">
+          <div className="absolute top-5 left-0 right-0 h-[1px] bg-[var(--border)] -z-10" />
           {steps.map((label, i) => (
             <StepDot key={label} idx={i} label={label} active={i === step} done={i < step} />
           ))}
         </div>
 
-        {/* Step 0 — Exam Info */}
-        {step === 0 && (
-          <div className="glass rounded-2xl p-6 animate-slide-up space-y-5">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Target size={16} className="text-purple-400" />
-                <h2 className="font-display font-bold text-lg text-[var(--text-primary)]">Your Exam Details</h2>
-              </div>
-              <p className="text-[var(--text-secondary)] text-sm">Tell us what you're preparing for</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Exam / Course Name</label>
-              <input
-                type="text"
-                value={data.examName}
-                onChange={(e) => setData({ ...data, examName: e.target.value })}
-                placeholder="e.g. B.Tech Semester 6, GATE 2025, JEE Mains..."
-                className="input-field"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Exam Date</label>
-                <input
-                  type="date"
-                  value={data.examDate}
-                  min={minDate}
-                  onChange={(e) => setData({ ...data, examDate: e.target.value })}
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Exam Time</label>
-                <input
-                  type="time"
-                  value={data.examTime || "09:00"}
-                  onChange={(e) => setData({ ...data, examTime: e.target.value })}
-                  className="input-field"
-                />
-              </div>
-            </div>
-            {data.examDate && (
-              <div className="flex items-center gap-2 p-3 glass-purple rounded-xl">
-                <Calendar size={14} className="text-purple-400" />
-                <span className="text-sm text-zinc-300">
-                  {Math.max(0, Math.ceil((new Date(data.examDate) - new Date()) / (1000 * 60 * 60 * 24)))} days remaining
-                </span>
-              </div>
+        <div className="min-h-[400px]">
+          <AnimatePresence mode="wait">
+            {/* Step 0 — Exam Info */}
+            {step === 0 && (
+              <motion.div 
+                key="step0"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Exam / Course Identity</label>
+                      <input
+                        type="text"
+                        value={data.examName}
+                        onChange={(e) => setData({ ...data, examName: e.target.value })}
+                        placeholder="e.g. Advanced AI Architecture"
+                        className="input-field"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Target Date</label>
+                        <input
+                          type="date"
+                          value={data.examDate}
+                          min={minDate}
+                          onChange={(e) => setData({ ...data, examDate: e.target.value })}
+                          className="input-field"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Time</label>
+                        <input
+                          type="time"
+                          value={data.examTime}
+                          onChange={(e) => setData({ ...data, examTime: e.target.value })}
+                          className="input-field"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[32px] p-8 flex flex-col justify-center items-center text-center space-y-4">
+                    {data.examDate ? (
+                      <>
+                        <div className="w-16 h-16 rounded-2xl bg-[var(--purple)]/10 flex items-center justify-center text-[var(--purple)]">
+                          <Clock size={32} />
+                        </div>
+                        <div>
+                          <p className="text-4xl font-display font-bold">{daysLeft}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Days Remaining</p>
+                        </div>
+                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
+                          studyIntensity === 'Critical' ? 'border-red-500/30 text-red-400 bg-red-500/10' :
+                          studyIntensity === 'High' ? 'border-amber-500/30 text-amber-400 bg-amber-500/10' :
+                          'border-green-500/30 text-green-400 bg-green-500/10'
+                        }`}>
+                          Intensity: {studyIntensity}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="w-16 h-16 rounded-2xl bg-white/5 mx-auto flex items-center justify-center text-[var(--text-muted)]">
+                          <Target size={32} />
+                        </div>
+                        <p className="text-sm text-[var(--text-muted)] font-medium">Select a date to calculate preparation intensity.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
             )}
-          </div>
-        )}
 
-        {/* Step 1 — Subjects */}
-        {step === 1 && (
-          <div className="glass rounded-2xl p-6 animate-slide-up space-y-5">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <BookOpen size={16} className="text-blue-400" />
-                <h2 className="font-display font-bold text-lg text-[var(--text-primary)]">Add Your Subjects</h2>
-              </div>
-              <p className="text-zinc-500 text-sm">Add all subjects you need to study</p>
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={subjectInput}
-                onChange={(e) => setSubjectInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addSubject()}
-                placeholder="e.g. Data Structures, OS, DBMS..."
-                className="input-field"
-              />
-              <button onClick={addSubject} className="btn-primary px-4 py-2 text-sm flex-shrink-0">
-                <Plus size={16} />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 min-h-[60px]">
-              {data.subjects.length === 0 ? (
-                <p className="text-zinc-600 text-sm w-full text-center py-4">No subjects added yet</p>
-              ) : (
-                data.subjects.map((s) => <SubjectTag key={s} name={s} onRemove={removeSubject} />)
-              )}
-            </div>
-            {/* Quick suggestions */}
-            <div>
-              <p className="text-xs text-zinc-600 mb-2">Quick add:</p>
-              <div className="flex flex-wrap gap-1.5">
-                {["Mathematics", "Physics", "Chemistry", "Data Structures", "OS", "DBMS", "Networks", "Algorithms"].map((s) => (
-                  !data.subjects.includes(s) && (
-                    <button
-                      key={s}
-                      onClick={() => { setData((prev) => ({ ...prev, subjects: [...prev.subjects, s], confidenceLevels: { ...prev.confidenceLevels, [s]: 50 } })); }}
-                      className="text-xs px-2.5 py-1 glass rounded-lg text-zinc-400 hover:text-white hover:border-purple-500/30 transition-all border border-transparent"
-                    >
-                      + {s}
+            {/* Step 1 — Subjects */}
+            {step === 1 && (
+              <motion.div 
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <input
+                      type="text"
+                      value={subjectInput}
+                      onChange={(e) => setSubjectInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && addSubject()}
+                      placeholder="Add a subject (e.g. Quantum Computing)"
+                      className="input-field"
+                    />
+                    <button onClick={addSubject} className="w-14 h-14 rounded-2xl bg-[var(--purple)] text-white flex items-center justify-center hover:scale-105 transition-all">
+                      <Plus size={24} />
                     </button>
-                  )
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+                  </div>
+                  <div className="flex flex-wrap gap-3 p-8 border border-[var(--border)] rounded-[32px] bg-white/5 min-h-[120px]">
+                    {data.subjects.length === 0 ? (
+                      <div className="w-full flex flex-col items-center justify-center text-[var(--text-muted)] space-y-2 opacity-50">
+                        <BookOpen size={24} />
+                        <p className="text-xs font-bold uppercase tracking-widest">No subjects active</p>
+                      </div>
+                    ) : (
+                      data.subjects.map((s) => <SubjectTag key={s} name={s} onRemove={removeSubject} />)
+                    )}
+                  </div>
+                </div>
 
-        {/* Step 2 — Confidence */}
-        {step === 2 && (
-          <div className="glass rounded-2xl p-6 animate-slide-up space-y-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Target size={16} className="text-cyan-400" />
-                <h2 className="font-display font-bold text-lg text-[var(--text-primary)]">Confidence Levels</h2>
-              </div>
-              <p className="text-zinc-500 text-sm">How confident are you in each subject?</p>
-            </div>
-            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-              {data.subjects.map((s) => (
-                <ConfidenceSlider
-                  key={s}
-                  subject={s}
-                  value={data.confidenceLevels[s] ?? 50}
-                  onChange={setConfidence}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+                <div className="space-y-4">
+                   <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Neural Suggestions</p>
+                   <div className="flex flex-wrap gap-2">
+                    {["Mathematics", "Physics", "Computer Science", "Algorithms", "OS", "DBMS", "Networks", "Architecture"].map((s) => (
+                      !data.subjects.includes(s) && (
+                        <button
+                          key={s}
+                          onClick={() => { setData((prev) => ({ ...prev, subjects: [...prev.subjects, s], confidenceLevels: { ...prev.confidenceLevels, [s]: 50 } })); }}
+                          className="px-4 py-2 rounded-xl bg-[var(--bg-surface)] border border-[var(--border)] text-xs font-medium hover:border-[var(--purple)]/30 hover:text-[var(--purple)] transition-all"
+                        >
+                          + {s}
+                        </button>
+                      )
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
-        {/* Step 3 — Study Hours */}
-        {step === 3 && (
-          <div className="glass rounded-2xl p-6 animate-slide-up space-y-5">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Clock size={16} className="text-amber-400" />
-                <h2 className="font-display font-bold text-lg text-[var(--text-primary)]">Study Schedule</h2>
-              </div>
-              <p className="text-zinc-500 text-sm">Set your daily study capacity</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-zinc-400 mb-3 block">
-                Daily study hours: <span className="text-purple-400 font-bold">{data.studyHoursPerDay}h</span>
-              </label>
-              <input
-                type="range" min="1" max="12" value={data.studyHoursPerDay}
-                onChange={(e) => setData({ ...data, studyHoursPerDay: Number(e.target.value) })}
-                className="w-full accent-purple-500 h-1.5 cursor-pointer"
-              />
-              <div className="flex justify-between text-xs text-zinc-600 mt-1">
-                <span>1 hour</span><span>6 hours</span><span>12 hours</span>
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-zinc-400 mb-2 block">Preferred study time</label>
-              <div className="grid grid-cols-3 gap-2">
-                {[["morning", "🌅 Morning"], ["afternoon", "☀️ Afternoon"], ["evening", "🌙 Evening"]].map(([val, label]) => (
-                  <button
-                    key={val}
-                    onClick={() => setData({ ...data, preferredTime: val })}
-                    className={`py-2.5 rounded-xl text-xs font-medium transition-all ${
-                      data.preferredTime === val
-                        ? "bg-purple-600 text-white border border-purple-500"
-                        : "glass text-zinc-400 hover:text-white"
-                    }`}
-                  >
-                    {label}
-                  </button>
+            {/* Step 2 — Confidence */}
+            {step === 2 && (
+              <motion.div 
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              >
+                {data.subjects.map((s) => (
+                  <ConfidenceSlider
+                    key={s}
+                    subject={s}
+                    value={data.confidenceLevels[s] ?? 50}
+                    onChange={setConfidence}
+                  />
                 ))}
-              </div>
-            </div>
-            <div className="glass-purple rounded-xl p-3 flex items-start gap-2">
-              <Sparkles size={14} className="text-purple-400 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-zinc-400">
-                AI will generate your personalized study schedule based on these preferences and the topics you've added.
-              </p>
-            </div>
-          </div>
-        )}
+              </motion.div>
+            )}
+
+            {/* Step 3 — Study Hours */}
+            {step === 3 && (
+              <motion.div 
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-12"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[32px] p-8 space-y-6">
+                      <div className="flex items-center justify-between">
+                         <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                            <Clock size={24} />
+                         </div>
+                         <div className="text-right">
+                            <p className="text-3xl font-display font-bold text-amber-500">{data.studyHoursPerDay}h</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Daily Quota</p>
+                         </div>
+                      </div>
+                      <input
+                        type="range" min="1" max="12" value={data.studyHoursPerDay}
+                        onChange={(e) => setData({ ...data, studyHoursPerDay: Number(e.target.value) })}
+                        className="w-full h-2 bg-[var(--bg-surface)] rounded-full appearance-none cursor-pointer accent-amber-500"
+                      />
+                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                        <span>Light (1h)</span><span>Grind (6h)</span><span>Beast (12h)</span>
+                      </div>
+                   </div>
+
+                   <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[32px] p-8 space-y-6">
+                      <div className="w-12 h-12 rounded-xl bg-[var(--purple)]/10 text-[var(--purple)] flex items-center justify-center">
+                        <Sparkles size={24} />
+                      </div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Preferred study window</p>
+                      <div className="grid grid-cols-1 gap-3">
+                        {[["morning", "🌅 Neural Peak (Morning)"], ["afternoon", "☀️ Active Flow (Afternoon)"], ["evening", "🌙 Deep Focus (Evening)"]].map(([val, label]) => (
+                          <button
+                            key={val}
+                            onClick={() => setData({ ...data, preferredTime: val })}
+                            className={`px-6 py-4 rounded-2xl text-sm font-bold transition-all text-left flex items-center justify-between ${
+                              data.preferredTime === val
+                                ? "bg-[var(--purple)] text-white border border-[var(--purple)]"
+                                : "bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--purple)]/30 hover:text-[var(--text-secondary)]"
+                            }`}
+                          >
+                            {label}
+                            {data.preferredTime === val && <CheckCircle size={16} />}
+                          </button>
+                        ))}
+                      </div>
+                   </div>
+                </div>
+
+                <div className="p-6 bg-[var(--purple)]/5 border border-[var(--purple)]/20 rounded-[32px] flex items-center gap-6">
+                  <div className="w-16 h-16 rounded-2xl bg-[var(--purple)]/20 flex items-center justify-center text-[var(--purple)] shrink-0">
+                    <Brain size={32} />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-bold">Intelligent Engine Synchronized</h4>
+                    <p className="text-xs text-[var(--text-secondary)]">Your schedule will prioritize {data.subjects.filter(s => (data.confidenceLevels[s] || 50) < 40).length || "your weak"} subjects during your {data.preferredTime} peak hours.</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between mt-6">
+        <footer className="flex items-center justify-between pt-8 border-t border-[var(--border)]">
           <button
             onClick={() => setStep((s) => s - 1)}
             disabled={step === 0}
-            className={`btn-ghost text-sm py-2.5 px-5 ${step === 0 ? "opacity-30 pointer-events-none" : ""}`}
+            className={`btn-outline border-none hover:bg-white/5 py-3 px-8 flex items-center gap-2 ${step === 0 ? "opacity-30 pointer-events-none" : ""}`}
           >
-            <ChevronLeft size={16} /> Back
+            <ChevronLeft size={18} /> Previous
           </button>
 
           {step < steps.length - 1 ? (
             <button
               onClick={() => canNext() && setStep((s) => s + 1)}
               disabled={!canNext()}
-              className={`btn-primary text-sm py-2.5 px-6 ${!canNext() ? "opacity-50 pointer-events-none" : ""}`}
+              className={`btn-primary py-4 px-10 shadow-2xl ${!canNext() ? "opacity-50 pointer-events-none" : ""}`}
             >
-              Continue <ChevronRight size={16} />
+              Continue <ChevronRight size={18} />
             </button>
           ) : (
             <button
               onClick={handleSave}
               disabled={saving}
-              className="btn-primary text-sm py-2.5 px-6"
+              className="btn-primary py-4 px-10 shadow-2xl bg-[var(--purple)] text-white"
             >
-              {saving ? <><div className="spinner w-4 h-4" /> Saving...</> : <><CheckCircle size={15} /> Save & Continue</>}
+              {saving ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" /> Architecting...</> : <><ShieldCheck size={18} /> Complete Setup</>}
             </button>
           )}
-        </div>
+        </footer>
       </div>
     </AppLayout>
   );

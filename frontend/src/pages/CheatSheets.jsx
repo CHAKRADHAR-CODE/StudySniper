@@ -158,10 +158,24 @@ const CheatSheets = () => {
               <tbody>${table.rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
             </table>
           `).join('') : ''}
+          
           <h2>Neural Formula Network</h2>
-          <ul>${(sheet.formulas || ["No formulas identified."]).map(f => `<li>${f}</li>`).join('')}</ul>
+          <ul>${(sheet.formulas || ["No formulas identified."]).map(f => `<li>${typeof f === 'object' ? (f.formula || JSON.stringify(f)) : f}</li>`).join('')}</ul>
+          
           <h2>Process & Flow</h2>
-          <ul>${(sheet.flowExplanations || []).map(f => `<li>${f}</li>`).join('')}</ul>
+          <ul>${(sheet.flowExplanations || []).map(f => `<li>${typeof f === 'object' ? (f.explanation || JSON.stringify(f)) : f}</li>`).join('')}</ul>
+          
+          <h2>Pro Highlights</h2>
+          <ul>${(sheet.highlights || []).map(h => `<li>${typeof h === 'object' ? (h.highlight || JSON.stringify(h)) : h}</li>`).join('')}</ul>
+          
+          <h2>Interview & Exam Drills</h2>
+          ${(sheet.interviewQuestions || []).map(q => `
+            <div style="margin-bottom: 15px;">
+              <strong>Q: ${q.question}</strong><br/>
+              <span style="color: #444;">A: ${q.answer}</span>
+            </div>
+          `).join('')}
+
           <div class="footer">
             StudySniper AI • Intelligence for Scholars • Protected Neural Data
           </div>

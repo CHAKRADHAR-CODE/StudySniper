@@ -8,13 +8,12 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 export const geminiService = {
   analyzeContent: async (content, promptType = "syllabus") => {
     // List of models to try in order of preference (2026 stable)
-    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"];
+    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro"];
     let lastError = null;
 
     for (const modelName of modelsToTry) {
       try {
         console.log(`Gemini: Attempting with model: ${modelName}`);
-        // Specify version explicitly if possible via model string or use default
         const model = genAI.getGenerativeModel({ model: modelName });
         
         let systemPrompt = "";

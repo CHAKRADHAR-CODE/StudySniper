@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../firebase/auth";
-import { authService } from "../services/authService";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield, User, Moon, Sun } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield, User, Moon, Sun, CheckCircle2 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import PremiumButton from "../components/common/PremiumButton";
 import Logo from "../components/common/Logo";
@@ -15,35 +14,19 @@ const SignupPage = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1); // 1: Form, 2: OTP
-  const [otp, setOtp] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSendOTP = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (form.password.length < 6) return toast.error("Password too short");
     setLoading(true);
     try {
-      await authService.sendOTP(form.email, 'register');
-      toast.success("Verification code sent to your email!");
-      setStep(2);
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to send OTP. Check your email.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyAndRegister = async (e) => {
-    e.preventDefault();
-    if (otp.length !== 6) return toast.error("Enter 6-digit code");
-    setLoading(true);
-    try {
-      await authService.verifyOTP(form.email, otp);
       await registerUser(form.email, form.password, form.name);
-      toast.success("Identity verified! Welcome to StudySniper.");
-      navigate("/onboarding");
+      setIsSuccess(true);
+      toast.success("Verification email sent! Please check your inbox before logging in.", { duration: 5000 });
     } catch (err) {
-      toast.error(err.response?.data?.error || "Invalid verification code.");
+      console.error(err);
+      toast.error(err.message || "Registration failed. Check your details.");
     } finally {
       setLoading(false);
     }
@@ -89,7 +72,6 @@ const SignupPage = () => {
 
       {/* Right Side: Form */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-16 relative">
-        {/* Theme Toggle Top Right */}
         <button
           onClick={toggleTheme}
           className="absolute top-8 right-8 p-3 rounded-full border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
@@ -98,127 +80,107 @@ const SignupPage = () => {
         </button>
 
         <div className="w-full max-w-sm space-y-8">
-          <div className="space-y-2">
-            <h2 className="text-4xl font-display font-bold tracking-tight">Create Account</h2>
-            <p className="text-[var(--text-secondary)] font-medium">Begin your journey to academic excellence.</p>
-          </div>
-
-          <div className="flex p-1.5 bg-[var(--bg-surface)] rounded-2xl border border-[var(--border)] relative overflow-hidden group">
-             <motion.div 
-               layoutId="activeTab"
-               className="absolute inset-y-1.5 right-1.5 w-[calc(50%-6px)] bg-[var(--bg-primary)] rounded-xl border border-[var(--border)] shadow-[0_4px_20px_rgba(0,0,0,0.5)] z-0"
-               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-             />
-             <button onClick={() => navigate("/login")} className="flex-1 py-2.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors relative z-10">Login</button>
-             <button className="flex-1 py-2.5 text-xs font-bold text-[var(--text-primary)] relative z-10">Register</button>
-          </div>
-
           <AnimatePresence mode="wait">
-            {step === 1 ? (
-              <motion.form 
-                key="step1"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                onSubmit={handleSendOTP} 
-                className="space-y-5"
+            {!isSuccess ? (
+              <motion.div 
+                key="form"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-8"
               >
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                    <User size={12} /> Full Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="John Doe"
-                    className="input-field"
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  />
+                  <h2 className="text-4xl font-display font-bold tracking-tight">Create Account</h2>
+                  <p className="text-[var(--text-secondary)] font-medium">Begin your journey to academic excellence.</p>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                    <Mail size={12} /> Email Address
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="scholar@example.com"
-                    className="input-field"
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  />
+                <div className="flex p-1.5 bg-[var(--bg-surface)] rounded-2xl border border-[var(--border)] relative overflow-hidden group">
+                   <motion.div 
+                     layoutId="activeTab"
+                     className="absolute inset-y-1.5 right-1.5 w-[calc(50%-6px)] bg-[var(--bg-primary)] rounded-xl border border-[var(--border)] shadow-[0_4px_20px_rgba(0,0,0,0.5)] z-0"
+                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                   />
+                   <button onClick={() => navigate("/login")} className="flex-1 py-2.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors relative z-10">Login</button>
+                   <button className="flex-1 py-2.5 text-xs font-bold text-[var(--text-primary)] relative z-10">Register</button>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                    <Lock size={12} /> Password
-                  </label>
-                  <div className="relative">
+                <form onSubmit={handleRegister} className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+                      <User size={12} /> Full Name
+                    </label>
                     <input
-                      type={showPass ? "text" : "password"}
+                      type="text"
                       required
-                      placeholder="Min. 6 characters"
-                      className="input-field pr-12"
-                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      placeholder="John Doe"
+                      className="input-field"
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPass(!showPass)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                    >
-                      {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
                   </div>
-                </div>
 
-                <PremiumButton loading={loading} icon={ArrowRight}>
-                  Verify Email
-                </PremiumButton>
-              </motion.form>
-            ) : (
-              <motion.form 
-                key="step2"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                onSubmit={handleVerifyAndRegister} 
-                className="space-y-6"
-              >
-                <div className="space-y-4 text-center">
-                   <div className="w-16 h-16 rounded-2xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)] mx-auto">
-                      <Shield size={28} />
-                   </div>
-                   <div className="space-y-1">
-                      <h3 className="font-bold text-lg text-[var(--text-primary)]">Verify identity</h3>
-                      <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Code sent to {form.email}</p>
-                   </div>
-                </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+                      <Mail size={12} /> Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="scholar@example.com"
+                      className="input-field"
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    placeholder="0 0 0 0 0 0"
-                    className="input-field text-center text-2xl font-black tracking-[12px] placeholder:tracking-normal placeholder:text-sm"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+                      <Lock size={12} /> Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPass ? "text" : "password"}
+                        required
+                        placeholder="Min. 6 characters"
+                        className="input-field pr-12"
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPass(!showPass)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                      >
+                        {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
 
-                <div className="space-y-3">
-                  <PremiumButton loading={loading}>
-                    Complete Registration
+                  <PremiumButton loading={loading} icon={ArrowRight}>
+                    Create Account
                   </PremiumButton>
-                  <button 
-                    type="button" 
-                    onClick={() => setStep(1)} 
-                    className="w-full text-[10px] font-bold text-[var(--text-muted)] hover:text-white uppercase tracking-widest transition-colors"
-                  >
-                    ← Edit Details
-                  </button>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center space-y-6 bg-[var(--bg-secondary)] p-10 rounded-[40px] border border-[var(--border)] shadow-2xl"
+              >
+                <div className="w-20 h-20 rounded-3xl bg-[var(--green)]/10 border border-[var(--green)]/20 flex items-center justify-center text-[var(--green)] mx-auto">
+                   <CheckCircle2 size={40} />
                 </div>
-              </motion.form>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold">Verification Sent</h3>
+                  <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
+                    We've sent a neural verification link to <strong>{form.email}</strong>. Please check your inbox and verify your email to activate your account.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => navigate("/login")}
+                  className="btn-primary w-full py-4 text-xs font-bold uppercase tracking-widest bg-[var(--purple)] text-white"
+                >
+                  Proceed to Login
+                </button>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>

@@ -4,7 +4,7 @@ import axios from "axios";
 const API_BASE_URL = "/api";
 
 const aiService = {
-  analyzeSyllabus: async (filesOrContent, userId) => {
+  analyzeSyllabus: async (filesOrContent, userId, subjects = []) => {
     try {
       const formData = new FormData();
       if (Array.isArray(filesOrContent)) {
@@ -17,6 +17,7 @@ const aiService = {
         formData.append("content", filesOrContent);
       }
       formData.append("userId", userId);
+      formData.append("subjects", JSON.stringify(subjects));
 
       const response = await axios.post(`${API_BASE_URL}/analyze`, formData, {
         headers: {

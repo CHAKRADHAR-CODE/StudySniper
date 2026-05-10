@@ -86,133 +86,6 @@
           "local_saved_at": "2026-05-10T08:22:52.056Z"
         }
       },
-      "studyPlan": {
-        "current": {
-          "schedule": [
-            {
-              "day": 1,
-              "tasks": [
-                {
-                  "task": "What is a DBMS? Compare file systems vs. database systems",
-                  "goal": "Understand the basics of DBMS",
-                  "duration": "2h",
-                  "time": "09:00 AM"
-                },
-                {
-                  "task": "Read DBMS importance and description",
-                  "goal": "Familiarize with DBMS importance and description",
-                  "duration": "1h",
-                  "time": "10:00 AM"
-                }
-              ]
-            },
-            {
-              "day": 2,
-              "tasks": [
-                {
-                  "task": "Advantages of DBMS and its applications",
-                  "goal": "Understand the benefits of DBMS",
-                  "duration": "2h",
-                  "time": "09:00 AM"
-                },
-                {
-                  "task": "Read DBMS applications",
-                  "goal": "Familiarize with DBMS applications",
-                  "duration": "1h",
-                  "time": "11:00 AM"
-                }
-              ]
-            },
-            {
-              "day": 3,
-              "tasks": [
-                {
-                  "task": "Database languages",
-                  "goal": "Understand database languages",
-                  "duration": "2h",
-                  "time": "09:00 AM"
-                },
-                {
-                  "task": "Read DDL, DML, DCL, TCL, and view definition language",
-                  "goal": "Familiarize with database languages",
-                  "duration": "1h",
-                  "time": "11:00 AM"
-                }
-              ]
-            },
-            {
-              "day": 4,
-              "tasks": [
-                {
-                  "task": "Database system structure",
-                  "goal": "Understand database system structure",
-                  "duration": "2h",
-                  "time": "09:00 AM"
-                },
-                {
-                  "task": "Read database system components",
-                  "goal": "Familiarize with database system components",
-                  "duration": "1h",
-                  "time": "11:00 AM"
-                }
-              ]
-            },
-            {
-              "day": 5,
-              "tasks": [
-                {
-                  "task": "3 Levels of Data Abstraction",
-                  "goal": "Understand data abstraction levels",
-                  "duration": "2h",
-                  "time": "09:00 AM"
-                },
-                {
-                  "task": "Read physical, logical, and view levels",
-                  "goal": "Familiarize with data abstraction levels",
-                  "duration": "1h",
-                  "time": "11:00 AM"
-                }
-              ]
-            },
-            {
-              "day": 6,
-              "tasks": [
-                {
-                  "task": "Roles and responsibilities of Database administrators",
-                  "goal": "Understand DBA roles and responsibilities",
-                  "duration": "2h",
-                  "time": "09:00 AM"
-                },
-                {
-                  "task": "Read DBA tasks",
-                  "goal": "Familiarize with DBA tasks",
-                  "duration": "1h",
-                  "time": "11:00 AM"
-                }
-              ]
-            },
-            {
-              "day": 7,
-              "tasks": [
-                {
-                  "task": "Practice DBMS questions",
-                  "goal": "Practice DBMS concepts",
-                  "duration": "3h",
-                  "time": "09:00 AM"
-                },
-                {
-                  "task": "Review all DBMS topics",
-                  "goal": "Review DBMS concepts",
-                  "duration": "2h",
-                  "time": "02:00 PM"
-                }
-              ]
-            }
-          ],
-          "insights": "Stay focused and organized, and make sure to review all topics before the exam. Practice as many questions as you can to build your confidence.",
-          "local_saved_at": "2026-05-10T09:20:33.914Z"
-        }
-      },
       "aiAnalysis": {
         "1778401431266": {
           "title": "Operating Systems",
@@ -275,6 +148,900 @@
             }
           ],
           "local_saved_at": "2026-05-10T09:20:33.916Z"
+        },
+        "latest": {
+          "isValid": true,
+          "validationMessage": "string",
+          "title": "Operating Systems",
+          "topics": [
+            {
+              "name": "Introduction to Operating Systems",
+              "subtopics": [
+                "Definition of Operating System",
+                "Functions of Operating System"
+              ],
+              "concepts": [
+                "Interface between user and hardware",
+                "Process Management",
+                "Memory Management",
+                "File Management",
+                "Device Management",
+                "Security & Protection",
+                "User Interface"
+              ],
+              "definitions": [
+                "Operating System: System software that works as an interface between the user and computer hardware. It manages hardware, software, and provides services to run programs."
+              ],
+              "formulas": [],
+              "importantQuestions": [
+                "Define an Operating System. Explain its main functions with suitable examples."
+              ],
+              "repeatedQuestions": [],
+              "difficulty": "Easy",
+              "weightage": 90,
+              "frequentlyAsked": true,
+              "description": "Introduces the concept of an operating system and its core functions such as managing processes, memory, files, and devices."
+            },
+            {
+              "name": "Operating System Structures",
+              "subtopics": [
+                "Monolithic Structure",
+                "Layered Structure",
+                "Microkernel Structure"
+              ],
+              "concepts": [
+                "Kernel",
+                "User Space",
+                "Performance vs. Security",
+                "Modularity",
+                "Communication between components"
+              ],
+              "definitions": [
+                "Monolithic OS: Entire OS runs in a single large kernel",
+                "Layered OS: OS is divided into layers, each built on top of the lower one.",
+                "Microkernel OS: Only the essential functions are in the kernel, services run in user space."
+              ],
+              "formulas": [],
+              "importantQuestions": [
+                "Explain the structure of an Operating System. Compare monolithic, layered, and microkernel structures."
+              ],
+              "repeatedQuestions": [],
+              "difficulty": "Medium",
+              "weightage": 75,
+              "frequentlyAsked": true,
+              "description": "Explores different OS structures, their advantages, disadvantages, and examples of systems using each structure."
+            },
+            {
+              "name": "Types of Operating Systems",
+              "subtopics": [
+                "Batch Operating System",
+                "Time-Sharing Operating System",
+                "Distributed Operating System",
+                "Real-Time Operating System"
+              ],
+              "concepts": [
+                "User Interaction",
+                "Resource Sharing",
+                "Real-time constraints",
+                "Network Dependency"
+              ],
+              "definitions": [
+                "Batch OS: Jobs are collected and executed in batches without user interaction.",
+                "Time-Sharing OS: Many users share the system at the same time.",
+                "Distributed OS: Controls a group of independent computers to work as a single system.",
+                "Real-Time OS (RTOS): Responds to inputs immediately without delay."
+              ],
+              "formulas": [],
+              "importantQuestions": [
+                "Describe various types of operating systems (e.g., batch, time-sharing, distributed, realtime)."
+              ],
+              "repeatedQuestions": [],
+              "difficulty": "Medium",
+              "weightage": 80,
+              "frequentlyAsked": true,
+              "description": "Discusses various types of operating systems based on their functionality and use cases."
+            },
+            {
+              "name": "System Calls",
+              "subtopics": [
+                "Process Control",
+                "File Management",
+                "Device Management",
+                "Information Maintenance",
+                "Communication"
+              ],
+              "concepts": [
+                "Kernel interaction",
+                "User-level programs",
+                "API",
+                "Service requests"
+              ],
+              "definitions": [
+                "System Call: A way for a program to request services from the Operating System kernel."
+              ],
+              "formulas": [],
+              "importantQuestions": [
+                "What are system calls? Explain different types of system calls with examples."
+              ],
+              "repeatedQuestions": [],
+              "difficulty": "Medium",
+              "weightage": 85,
+              "frequentlyAsked": true,
+              "description": "Explains the concept of system calls and their importance in providing an interface between user programs and OS services."
+            },
+            {
+              "name": "Operating System Services",
+              "subtopics": [
+                "Program Execution",
+                "Input/Output Operations",
+                "File System Management",
+                "Communication (IPC)",
+                "Error Detection",
+                "Resource Allocation",
+                "Protection and Security",
+                "User Interface"
+              ],
+              "concepts": [
+                "Resource Management",
+                "Security",
+                "User Experience",
+                "Error Handling"
+              ],
+              "definitions": [],
+              "formulas": [],
+              "importantQuestions": [
+                "Discuss the services provided by the operating system."
+              ],
+              "repeatedQuestions": [],
+              "difficulty": "Easy",
+              "weightage": 95,
+              "frequentlyAsked": true,
+              "description": "Details the various services provided by an operating system to facilitate smooth and efficient computer operations."
+            },
+            {
+              "name": "System Boot Process",
+              "subtopics": [
+                "Power On Self Test (POST)",
+                "Loading BIOS/UEFI",
+                "Boot Loader Execution",
+                "Kernel Loading"
+              ],
+              "concepts": [
+                "Hardware Initialization",
+                "Boot Sector",
+                "Kernel Initialization",
+                "Operating System Startup"
+              ],
+              "definitions": [],
+              "formulas": [],
+              "importantQuestions": [
+                "Explain the system boot process. What are the steps involved?"
+              ],
+              "repeatedQuestions": [],
+              "difficulty": "Medium",
+              "weightage": 70,
+              "frequentlyAsked": false,
+              "description": "Describes the sequence of steps that a computer follows to start the operating system after power is turned on."
+            }
+          ],
+          "overallDifficulty": "Medium",
+          "keyTakeaways": [
+            "Operating Systems manage hardware and software resources.",
+            "Different OS structures and types exist to suit different needs.",
+            "System calls provide an interface between user programs and the OS kernel.",
+            "The boot process initializes the system and loads the operating system."
+          ],
+          "local_saved_at": "2026-05-10T21:49:56.878Z"
+        }
+      },
+      "studyPlans": {
+        "plan_1778449002343": {
+          "schedule": [
+            {
+              "day": 1,
+              "label": "DBMS Fundamentals",
+              "tasks": [
+                {
+                  "time": "08",
+                  "task": "Review DBMS vs File System"
+                },
+                {
+                  "time": "10",
+                  "task": "Study Types of Users in DBMS"
+                },
+                {
+                  "time": "12",
+                  "task": "Understand Data Models in DBMS"
+                },
+                {
+                  "time": "14",
+                  "task": "Note important concepts and formulas"
+                }
+              ]
+            },
+            {
+              "day": 2,
+              "label": "Data Models and Schema",
+              "tasks": [
+                {
+                  "time": "08",
+                  "task": "Delve into Hierarchical and Network Data Models"
+                },
+                {
+                  "time": "10",
+                  "task": "Study Relational and Entity-Relationship Models"
+                },
+                {
+                  "time": "12",
+                  "task": "Understand Schema and Instance"
+                },
+                {
+                  "time": "14",
+                  "task": "Practice schema design"
+                }
+              ]
+            },
+            {
+              "day": 3,
+              "label": "Architecture and Design",
+              "tasks": [
+                {
+                  "time": "08",
+                  "task": "Study Two-Tier and Three-Tier Architecture"
+                },
+                {
+                  "time": "10",
+                  "task": "Understand Three Schema Architecture"
+                },
+                {
+                  "time": "12",
+                  "task": "Review database design principles"
+                },
+                {
+                  "time": "14",
+                  "task": "Practice designing databases"
+                }
+              ]
+            },
+            {
+              "day": 4,
+              "label": "Revision and Practice",
+              "tasks": [
+                {
+                  "time": "08",
+                  "task": "Revise all topics covered so far"
+                },
+                {
+                  "time": "10",
+                  "task": "Practice solving important questions"
+                },
+                {
+                  "time": "12",
+                  "task": "Focus on weak areas"
+                },
+                {
+                  "time": "14",
+                  "task": "Simulate a mock exam"
+                }
+              ]
+            },
+            {
+              "day": 5,
+              "label": "Final Prep",
+              "tasks": [
+                {
+                  "time": "08",
+                  "task": "Light review of key concepts"
+                },
+                {
+                  "time": "10",
+                  "task": "Relax and avoid intense studying"
+                },
+                {
+                  "time": "12",
+                  "task": "Take a break and rest"
+                },
+                {
+                  "time": "18",
+                  "task": "Get a good sleep for the exam"
+                }
+              ]
+            }
+          ],
+          "analytics": {
+            "weakSubjectFocus": "DBMS vs File System and Data Models",
+            "studyIntensity": "Beast Mode",
+            "estimatedReadiness": "80%"
+          },
+          "insights": "Stay focused, and you'll be ready for the exam. Get enough sleep to perform at your best.",
+          "local_saved_at": "2026-05-10T21:36:42.343Z"
+        }
+      },
+      "studyPlan": {
+        "current": {
+          "schedule": [
+            {
+              "day": 1,
+              "label": "Day 1 of 5: Introduction to Operating Systems and Structures",
+              "tasks": [
+                {
+                  "task": "Introduction to Operating Systems",
+                  "duration": "1.5h",
+                  "time": "17",
+                  "type": "Theory",
+                  "priority": "High"
+                },
+                {
+                  "task": "Operating System Structures",
+                  "duration": "1.5h",
+                  "time": "18",
+                  "type": "Theory",
+                  "priority": "Medium"
+                },
+                {
+                  "task": "Break",
+                  "duration": "1h",
+                  "time": "19",
+                  "type": "Break",
+                  "priority": "Low"
+                }
+              ]
+            },
+            {
+              "day": 2,
+              "label": "Day 2 of 5: Types of Operating Systems and System Calls",
+              "tasks": [
+                {
+                  "task": "Types of Operating Systems",
+                  "duration": "1.5h",
+                  "time": "17",
+                  "type": "Theory",
+                  "priority": "Medium"
+                },
+                {
+                  "task": "System Calls",
+                  "duration": "1.5h",
+                  "time": "18",
+                  "type": "Theory",
+                  "priority": "Medium"
+                },
+                {
+                  "task": "Break",
+                  "duration": "1h",
+                  "time": "19",
+                  "type": "Break",
+                  "priority": "Low"
+                }
+              ]
+            },
+            {
+              "day": 3,
+              "label": "Day 3 of 5: Operating System Services and System Boot Process",
+              "tasks": [
+                {
+                  "task": "Operating System Services",
+                  "duration": "1.5h",
+                  "time": "17",
+                  "type": "Theory",
+                  "priority": "High"
+                },
+                {
+                  "task": "System Boot Process",
+                  "duration": "1.5h",
+                  "time": "18",
+                  "type": "Theory",
+                  "priority": "Medium"
+                },
+                {
+                  "task": "Break",
+                  "duration": "1h",
+                  "time": "19",
+                  "type": "Break",
+                  "priority": "Low"
+                }
+              ]
+            },
+            {
+              "day": 4,
+              "label": "Day 4 of 5: Revision and Mock Tests",
+              "tasks": [
+                {
+                  "task": "Revision of all topics",
+                  "duration": "2h",
+                  "time": "17",
+                  "type": "Revision",
+                  "priority": "High"
+                },
+                {
+                  "task": "Mock Test 1",
+                  "duration": "1h",
+                  "time": "19",
+                  "type": "Mock Test",
+                  "priority": "Medium"
+                },
+                {
+                  "task": "Break",
+                  "duration": "1h",
+                  "time": "20",
+                  "type": "Break",
+                  "priority": "Low"
+                }
+              ]
+            },
+            {
+              "day": 5,
+              "label": "Day 5 of 5: Final Revision and Mock Tests",
+              "tasks": [
+                {
+                  "task": "Final Revision of all topics",
+                  "duration": "2h",
+                  "time": "17",
+                  "type": "Revision",
+                  "priority": "High"
+                },
+                {
+                  "task": "Mock Test 2",
+                  "duration": "1h",
+                  "time": "19",
+                  "type": "Mock Test",
+                  "priority": "Medium"
+                },
+                {
+                  "task": "Break",
+                  "duration": "1h",
+                  "time": "20",
+                  "type": "Break",
+                  "priority": "Low"
+                }
+              ]
+            }
+          ],
+          "analytics": {
+            "weakSubjectFocus": "None",
+            "studyIntensity": "Beast Mode",
+            "estimatedReadiness": "80%"
+          },
+          "local_saved_at": "2026-05-10T21:49:56.876Z"
+        }
+      }
+    },
+    "sInb87XZKpQPa94PJOTEEyeAVpi2": {
+      "profile": {
+        "info": {
+          "examName": "Semester",
+          "examDate": "2026-05-17",
+          "subjects": [
+            "Java",
+            "Data Structures"
+          ],
+          "confidenceLevels": {
+            "Java": 100,
+            "Data Structures": 10
+          },
+          "studyHoursPerDay": 3,
+          "preferredTime": "afternoon",
+          "local_saved_at": "2026-05-10T16:05:58.179Z"
+        }
+      },
+      "examPrepPlan": {
+        "current": {
+          "phases": [
+            {
+              "name": "Quick Review",
+              "duration": "Days 1-2",
+              "goal": "Refresh key concepts in Java and Data Structures",
+              "milestones": [
+                "Review Java syntax",
+                "Brush up on basic Data Structures"
+              ]
+            },
+            {
+              "name": "Subject Focus",
+              "duration": "Days 3-4",
+              "goal": "Dive deep into each subject",
+              "milestones": [
+                "Solve Java problems",
+                "Practice Data Structures implementations"
+              ]
+            },
+            {
+              "name": "Practice Exams",
+              "duration": "Days 5-6",
+              "goal": "Assess knowledge and identify weak areas",
+              "milestones": [
+                "Attempt a Java practice exam",
+                "Attempt a Data Structures practice exam"
+              ]
+            },
+            {
+              "name": "Final Prep",
+              "duration": "Day 7",
+              "goal": "Review weak areas and finalize strategy",
+              "milestones": [
+                "Review weak areas",
+                "Plan exam day strategy"
+              ]
+            }
+          ],
+          "readinessScore": 20,
+          "local_saved_at": "2026-05-10T16:05:58.180Z"
+        }
+      },
+      "studyPlan": {
+        "current": {
+          "schedule": [
+            {
+              "day": 1,
+              "tasks": [
+                {
+                  "task": "Specialization and Generalization in ER Model",
+                  "goal": "Understand the concepts of specialization and generalization",
+                  "duration": "2h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Entity, Entity Set, Relationship, and Relationship Set",
+                  "goal": "Learn the definitions and differences between entities, entity sets, relationships, and relationship sets",
+                  "duration": "2.5h",
+                  "time": "11:30 AM"
+                }
+              ]
+            },
+            {
+              "day": 2,
+              "tasks": [
+                {
+                  "task": "Attributes in ER Model",
+                  "goal": "Study the types and classifications of attributes in ER models",
+                  "duration": "2h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Review of Day 1 topics",
+                  "goal": "Revise and reinforce understanding of specialization, generalization, entities, and relationships",
+                  "duration": "1.5h",
+                  "time": "11:30 AM"
+                }
+              ]
+            },
+            {
+              "day": 3,
+              "tasks": [
+                {
+                  "task": "ER Diagram for Banking System",
+                  "goal": "Learn to create an ER diagram for a banking system",
+                  "duration": "2.5h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Practice creating ER diagrams",
+                  "goal": "Apply knowledge of ER diagrams to create diagrams for simple systems",
+                  "duration": "2h",
+                  "time": "12:00 PM"
+                }
+              ]
+            },
+            {
+              "day": 4,
+              "tasks": [
+                {
+                  "task": "ER Diagram for Library Management System",
+                  "goal": "Study the ER diagram for a library management system",
+                  "duration": "2h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Review of ER diagrams",
+                  "goal": "Revise and reinforce understanding of ER diagrams for banking and library systems",
+                  "duration": "1.5h",
+                  "time": "11:30 AM"
+                }
+              ]
+            },
+            {
+              "day": 5,
+              "tasks": [
+                {
+                  "task": "Review of all topics",
+                  "goal": "Revise and reinforce understanding of all DBMS topics",
+                  "duration": "3h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Practice solving problems",
+                  "goal": "Apply knowledge to solve problems related to DBMS topics",
+                  "duration": "2h",
+                  "time": "12:30 PM"
+                }
+              ]
+            },
+            {
+              "day": 6,
+              "tasks": [
+                {
+                  "task": "Mock exam",
+                  "goal": "Simulate the actual exam to assess knowledge and identify weak areas",
+                  "duration": "3h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Review of weak areas",
+                  "goal": "Focus on improving understanding of weak areas identified in the mock exam",
+                  "duration": "2h",
+                  "time": "12:30 PM"
+                }
+              ]
+            },
+            {
+              "day": 7,
+              "tasks": [
+                {
+                  "task": "Final review",
+                  "goal": "Revise and reinforce understanding of all DBMS topics one last time",
+                  "duration": "2h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Exam preparation",
+                  "goal": "Make sure to get enough rest, plan to arrive early at the exam venue, and have all necessary materials ready",
+                  "duration": "1h",
+                  "time": "11:00 AM"
+                }
+              ]
+            }
+          ],
+          "insights": "Stay focused, take regular breaks, and get enough sleep to retain information and perform well in the exam",
+          "local_saved_at": "2026-05-10T16:07:47.401Z"
+        }
+      },
+      "aiAnalysis": {
+        "1778429267402": {
+          "title": "DBMS",
+          "topics": [
+            {
+              "name": "Specialization and Generalization in ER Model",
+              "importance": 80,
+              "description": "Specialization is the process of dividing a high-level entity into two or more sub-entities based on some distinguishing characteristics, while generalization is the process of combining two or more lower-level entities into a higher-level entity that shares common attributes."
+            },
+            {
+              "name": "Entity, Entity Set, Relationship, and Relationship Set",
+              "importance": 90,
+              "description": "An entity is a real-world object or thing that has distinct existence, an entity set is a collection of similar entities that share the same attributes, a relationship is an association between two or more entities, and a relationship set is a collection of similar relationships."
+            },
+            {
+              "name": "Attributes in ER Model",
+              "importance": 85,
+              "description": "Attributes are the properties or characteristics of an entity or a relationship that describe it, and can be classified into simple, composite, derived, single-valued, multi-valued, and key attributes."
+            },
+            {
+              "name": "ER Diagram for Banking System",
+              "importance": 75,
+              "description": "The ER diagram for a banking system includes entities such as Customer, Account, Branch, and Loan, and relationships between them such as Customer-Account, Customer-Loan, Branch-Account, and Branch-Loan."
+            },
+            {
+              "name": "ER Diagram for Library Management System",
+              "importance": 70,
+              "description": "The ER diagram for a library management system includes entities such as Student/Member, Book, and Librarian, and relationships between them."
+            }
+          ],
+          "local_saved_at": "2026-05-10T16:07:47.403Z"
+        }
+      }
+    },
+    "nWo3BouBSGSu7oWXGGdbhhzTim22": {
+      "aiAnalysis": {
+        "latest": {
+          "isValid": true,
+          "validationMessage": "",
+          "title": "Probability and Statistics Problems",
+          "topics": [
+            {
+              "name": "Probability and Statistics",
+              "subtopics": [
+                "Sampling Distribution",
+                "Standard Deviation",
+                "Mean",
+                "Confidence Limits",
+                "Regression Lines",
+                "Rank Correlation",
+                "Karl Pearson's Coefficient of Correlation"
+              ],
+              "concepts": [
+                "Population mean",
+                "Population standard deviation",
+                "Sampling distribution of the means",
+                "Standard deviation of the sampling distribution of the means",
+                "Confidence intervals",
+                "Regression analysis",
+                "Correlation coefficient"
+              ],
+              "definitions": [
+                "A population is a set of all possible observations",
+                "A sample is a subset of the population",
+                "The mean of a population is the average value of all observations",
+                "The standard deviation of a population is a measure of the spread of the data",
+                "The sampling distribution of the means is the distribution of sample means",
+                "Regression lines are used to model the relationship between two variables",
+                "The correlation coefficient measures the strength and direction of the relationship between two variables"
+              ],
+              "formulas": [
+                "σ^2 = Σ(xi - μ)^2 / (n - 1)",
+                "μ = Σxi / n",
+                "σ = sqrt(Σ(xi - μ)^2 / (n - 1))",
+                "p̂ = Σpi / n",
+                "SE = σ / sqrt(n)",
+                "b1 = Σ[(xi - x̄)(yi - ȳ)] / Σ(xi - x̄)^2",
+                "r = b1 * σy / σx"
+              ],
+              "importantQuestions": [
+                "What is the population mean?",
+                "What is the population standard deviation?",
+                "What is the sampling distribution of the means?",
+                "What is the standard deviation of the sampling distribution of the means?",
+                "How do you calculate a confidence interval?",
+                "How do you perform regression analysis?",
+                "How do you calculate the correlation coefficient?"
+              ],
+              "repeatedQuestions": [
+                "What is the population mean?"
+              ],
+              "difficulty": "Medium",
+              "weightage": 80,
+              "frequentlyAsked": true,
+              "description": "This topic covers various concepts in probability and statistics, including sampling distribution, standard deviation, mean, confidence limits, regression lines, and correlation coefficient."
+            }
+          ],
+          "overallDifficulty": "Medium",
+          "keyTakeaways": [
+            "The mean and standard deviation are important concepts in probability and statistics.",
+            "The sampling distribution of the means is used to estimate the population mean.",
+            "Confidence intervals are used to estimate the population mean or proportion.",
+            "Regression analysis is used to model the relationship between two variables.",
+            "The correlation coefficient measures the strength and direction of the relationship between two variables."
+          ],
+          "local_saved_at": "2026-05-10T22:56:08.144Z"
+        }
+      },
+      "questionBanks": {
+        "1778452572995": {
+          "title": "Operating Systems: Analysis of Exam Questions and Important Topics",
+          "patterns": [
+            {
+              "pattern": "Operating System Structures",
+              "trend": "Frequently Asked",
+              "significance": "Fundamental concept for understanding OS design."
+            },
+            {
+              "pattern": "System Calls",
+              "trend": "Frequently Asked",
+              "significance": "Essential for understanding how user programs interact with the kernel."
+            },
+            {
+              "pattern": "Process Scheduling Algorithms (FCFS, RR, SJF, Priority)",
+              "trend": "Asked often, often comparison and calculation",
+              "significance": "Core topic in process management and resource allocation."
+            },
+            {
+              "pattern": "Multithreading Models",
+              "trend": "Frequently Asked",
+              "significance": "Important for understanding concurrent execution."
+            },
+            {
+              "pattern": "Semaphores, Mutexes and Monitors",
+              "trend": "Asked regularly",
+              "significance": "Understanding synchronization mechanisms prevents race conditions and ensures data consistency."
+            },
+            {
+              "pattern": "Deadlock (Conditions, Prevention, Avoidance, Detection)",
+              "trend": "Regular topic, especially Banker's Algorithm and Necessary Conditions",
+              "significance": "Critical for understanding and resolving process blocking scenarios."
+            },
+            {
+              "pattern": "Paging and Segmentation",
+              "trend": "Frequently Asked",
+              "significance": "Fundamental memory management techniques."
+            },
+            {
+              "pattern": "Page Replacement Algorithms (FIFO, LRU, Optimal)",
+              "trend": "Mostly asked for comparison",
+              "significance": "Important for virtual memory management and performance."
+            },
+            {
+              "pattern": "File Allocation Methods",
+              "trend": "Frequently Asked",
+              "significance": "Understanding file organization and access methods."
+            },
+            {
+              "pattern": "Disk Scheduling Algorithms",
+              "trend": "Frequently Asked",
+              "significance": "Key to improving disk I/O performance."
+            },
+            {
+              "pattern": "System Security Threats and Protection Mechanisms",
+              "trend": "Regular coverage",
+              "significance": "Ensuring system integrity and data confidentiality."
+            },
+            {
+              "pattern": "Access Matrix/Access Control",
+              "trend": "Repeated Questions",
+              "significance": "Understanding of how the system controls access to resources."
+            }
+          ],
+          "repeatedQuestions": [
+            {
+              "question": "Explain the structure and operations of an operating system?",
+              "frequency": "2 times",
+              "years": [
+                "Exam Paper",
+                "Important Questions List"
+              ]
+            },
+            {
+              "question": "Explain different types of system calls with examples?",
+              "frequency": "3 times",
+              "years": [
+                "Exam Paper",
+                "Important Questions List",
+                "Important Questions List - Second Occurrence"
+              ]
+            },
+            {
+              "question": "Explain the system boot process. What are the steps involved?",
+              "frequency": "2 times",
+              "years": [
+                "Exam Paper",
+                "Important Questions List"
+              ]
+            },
+            {
+              "question": "Describe the multithreading models (many-to-one, one-to-one, many-to-many) with diagrams.",
+              "frequency": "2 times",
+              "years": [
+                "Exam Paper",
+                "Important Questions List"
+              ]
+            },
+            {
+              "question": "Explain thread libraries and their functionalities.",
+              "frequency": "2 times",
+              "years": [
+                "Exam Paper",
+                "Important Questions List"
+              ]
+            },
+            {
+              "question": "Explain the Banker's algorithm for deadlock avoidance.",
+              "frequency": "2 times",
+              "years": [
+                "Exam Paper",
+                "Important Questions List"
+              ]
+            }
+          ],
+          "mostImportant": [
+            {
+              "question": "Explain Process Scheduling Algorithms (FCFS, SJF, Priority, Round Robin) with practical examples and also calculate Waiting time and Turnaround time for each algorithm.",
+              "priority": "Critical",
+              "reason": "It assess the in-depth understanding of Process scheduling concepts and its practical assessment."
+            },
+            {
+              "question": "Explain Deadlock Prevention, Avoidance (Banker's Algorithm), and Detection mechanisms with necessary conditions and examples.",
+              "priority": "High",
+              "reason": "Covers a range of solutions for the deadlock problem, making it strategically vital."
+            },
+            {
+              "question": "Explain Paging and Segmentation with diagrams.",
+              "priority": "High",
+              "reason": "Important and fundamental concept for memory management."
+            },
+            {
+              "question": "System calls and operating system structure.",
+              "priority": "High",
+              "reason": "Fundamental to understanding how user-level programs interact with the OS kernel."
+            }
+          ],
+          "summary": "The analysis indicates that core concepts in Operating Systems such as process scheduling, memory management (paging/segmentation), deadlock handling, file systems, and protection/security are consistently emphasized. Particular attention should be paid to understanding and comparing process scheduling algorithms, mastering deadlock prevention mechanisms like the Banker's Algorithm, and differentiating between paging and segmentation techniques. A solid understanding of system calls and multithreading models will also be advantageous. The student should focus on both theoretical understanding and the ability to apply concepts to practical examples. Reviewing the repeated questions would be extremely beneficial.",
+          "local_saved_at": "2026-05-10T22:36:12.996Z"
         }
       }
     }

@@ -60,114 +60,15 @@ app.use(express.json());
 // HEALTH
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-// In-memory OTP cache for resilience
-const otpCache = new Map();
-
-// AUTH
-app.post('/api/auth/send-otp', async (req, res) => {
-  const { email } = req.body;
-  try {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Save to Firestore (Primary)
-    try {
-      await db.collection('otps').doc(email).set({ 
-        otp, 
-        createdAt: admin.firestore.FieldValue.serverTimestamp() 
-      });
-    } catch (dbErr) {
-      console.warn("[Auth] Firestore OTP save failed, using memory cache:", dbErr.message);
-    }
-    
-    // Always save to memory cache (Fallback)
-    otpCache.set(email, { otp, createdAt: Date.now() });
-    
-    await mailService.sendOTP(email, otp);
-    res.json({ message: 'OTP sent' });
-  } catch (error) { 
-    console.error("[Auth Error] Send OTP:", error.message);
-    res.status(500).json({ error: 'Failed to send OTP. Check server logs.' }); 
-  }
-});
-
-app.post('/api/auth/verify-otp', async (req, res) => {
-  const { email, otp } = req.body;
-  try {
-    // 1. Check Firestore
-    let verified = false;
-    try {
-      const doc = await db.collection('otps').doc(email).get();
-      if (doc.exists && doc.data().otp === otp) {
-        await db.collection('otps').doc(email).delete();
-        verified = true;
-      }
-    } catch (dbErr) {
-      console.warn("[Auth] Firestore OTP verify failed, checking memory cache...");
-    }
-
-    // 2. Check Memory Cache if not verified by Firestore
-    if (!verified) {
-      const cached = otpCache.get(email);
-      if (cached && cached.otp === otp) {
-        // OTP valid for 10 minutes
-        if (Date.now() - cached.createdAt < 600000) {
-          otpCache.delete(email);
-          verified = true;
-        }
-      }
-    }
-
-    if (verified) return res.json({ message: 'Verified' });
-    res.status(400).json({ error: 'Invalid or expired OTP' });
-  } catch (error) { 
-    console.error("[Auth Error] Verify OTP:", error.message);
-    res.status(500).json({ error: 'Failed to verify OTP' }); 
-  }
-});
-
-app.post('/api/auth/forgot-password', async (req, res) => {
-  const { email } = req.body;
-  try {
-    // 1. Verify user exists
-    try {
-      await admin.auth().getUserByEmail(email);
-    } catch (error) {
-      if (error.code === 'auth/user-not-found') {
-        return res.status(404).json({ error: 'No account found with this email address.' });
-      }
-      throw error;
-    }
-
-    // 2. Generate Reset Link
-    const resetLink = await admin.auth().generatePasswordResetLink(email);
-    
-    // 3. Send Premium Email
-    await mailService.sendPremiumResetLink(email, resetLink);
-    
-    res.json({ message: 'Restoration link delivered' });
-  } catch (error) {
-    console.error("[Auth Error] Forgot Password:", error.message);
-    res.status(500).json({ error: 'Failed to deliver restoration link' });
-  }
-});
-
 app.post('/api/onboarding-complete', async (req, res) => {
   const { userId, data } = req.body;
   try {
-    // Generate Strategic Path & Schedule immediately
+    // Generate Strategic Path only (Study Plan is generated later via PDF Upload)
     const examDate = new Date(data.examDate);
     const today = new Date();
     const daysLeft = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
     
-    const strategyPromise = aiManager.generateStrategy({ ...data, daysLeft });
-    const planPromise = aiManager.generateStudyPlan({
-      examName: data.examName,
-      topics: data.subjects.map(s => ({ name: s, importance: 80, description: "Core subject from setup" })),
-      studyHoursPerDay: data.studyHoursPerDay || 4,
-      days: Math.min(daysLeft, 7)
-    });
-
-    const [strategy, plan] = await Promise.all([strategyPromise, planPromise]);
+    const strategy = await aiManager.generateStrategy({ ...data, daysLeft });
 
     // Sync to DB in background
     if (userId) {
@@ -176,7 +77,6 @@ app.post('/api/onboarding-complete', async (req, res) => {
           // Local Persistence (Primary for reliability)
           persistenceService.save(userId, 'profile', 'info', data);
           persistenceService.save(userId, 'examPrepPlan', 'current', strategy);
-          persistenceService.save(userId, 'studyPlan', 'current', plan);
 
           // Firestore (Secondary)
           await db.collection('users').doc(userId).set({ ...data, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
@@ -186,12 +86,6 @@ app.post('/api/onboarding-complete', async (req, res) => {
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
           });
 
-          const firestorePlan = {
-            ...plan,
-            schedule: JSON.stringify(plan.schedule || []),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-          };
-          await db.collection('users').doc(userId).collection('studyPlan').doc('current').set(firestorePlan);
           console.log("✅ Onboarding DB sync complete.");
         } catch (dbError) {
           console.error("[Database Error] Onboarding sync failed:", dbError.message);
@@ -199,16 +93,19 @@ app.post('/api/onboarding-complete', async (req, res) => {
       })();
     }
 
-    res.json({ message: 'Setup complete', strategy, plan });
+    res.json({ message: 'Setup complete', strategy });
   } catch (error) {
     console.error("[Setup Error]:", error.message);
     res.status(500).json({ error: 'Setup failed' });
   }
 });
 
-// CORE ENGINE - UPDATED FOR MULTIPLE FILES
+// CORE ENGINE - UPDATED FOR MULTIPLE FILES & VALIDATION
 app.post('/api/analyze', upload.array('files', 10), async (req, res) => {
-  const userId = req.body.userId;
+  const { userId, subjects: subjectsRaw } = req.body;
+  let subjects = [];
+  try { subjects = subjectsRaw ? JSON.parse(subjectsRaw) : []; } catch(e) {}
+  
   let combinedContent = req.body.content || "";
 
   try {
@@ -226,75 +123,92 @@ app.post('/api/analyze', upload.array('files', 10), async (req, res) => {
 
     if (!combinedContent.trim()) return res.status(400).json({ error: 'No content found in uploads or text body' });
 
-    console.log(`[Analyze] Content extracted (${combinedContent.length} chars). Sending to AI...`);
-    const analysis = await aiManager.analyzeSyllabus(combinedContent);
+    console.log(`[Analyze] Content extracted. Sending to AI for multi-factor analysis...`);
+    const analysis = await aiManager.analyzeSyllabus(combinedContent, subjects);
+    console.log(`[Analyze] AI Response: isValid=${analysis.isValid}, Title=${analysis.title}`);
     
+    // Validation Logic
+    if (subjects.length > 0 && analysis.isValid === false) {
+      return res.status(422).json({ 
+        error: 'Validation failed', 
+        message: analysis.validationMessage || "The uploaded PDF does not belong to the selected subject.",
+        analysis 
+      });
+    }
+
     let generatedPlan = null;
     if (userId) {
-      console.log(`[Analyze] userId found: ${userId}. Starting Plan Generation...`);
+      console.log(`[Analyze] userId found: ${userId}. Fetching profile for Smart Schedule...`);
       let targetDays = 7;
-      let studyHoursPerDay = 4;
+      let profileData = {};
       
-      // Step A: Load Profile (Resilient)
       try {
-        console.log(`[Analyze] Attempting to read profile for ${userId}...`);
-        const profileSnap = await db.collection('users').doc(userId).get();
-        if (profileSnap.exists) {
-          const profile = profileSnap.data();
-          studyHoursPerDay = profile.studyHoursPerDay || 4;
-          if (profile.examDate) {
-            const examDate = new Date(profile.examDate);
-            const diffDays = Math.ceil((examDate - new Date()) / (1000 * 60 * 60 * 24));
-            if (diffDays > 0) targetDays = Math.min(diffDays, 14);
+        const onboardingSnap = await db.collection('users').doc(userId).collection('profile').doc('onboarding').get();
+        if (onboardingSnap.exists) {
+          profileData = onboardingSnap.data();
+          if (profileData.examDate) {
+            const examDate = new Date(profileData.examDate);
+            examDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const diffDays = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+            if (diffDays > 0) targetDays = diffDays; // Use exactly the remaining days
           }
-          console.log(`[Analyze] Profile loaded: ${targetDays} days, ${studyHoursPerDay} hrs.`);
         } else {
-          console.log(`[Analyze] No profile found for ${userId}, using defaults.`);
+          // Fallback to old path just in case
+          const profileSnap = await db.collection('users').doc(userId).get();
+          if (profileSnap.exists) {
+            profileData = profileSnap.data();
+            if (profileData.examDate) {
+               const examDate = new Date(profileData.examDate);
+               examDate.setHours(0, 0, 0, 0);
+               const today = new Date();
+               today.setHours(0, 0, 0, 0);
+               const diffDays = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+               if (diffDays > 0) targetDays = diffDays;
+            }
+          }
         }
       } catch (dbReadErr) {
-        console.error(`[Analyze] Profile Read Error (Non-Fatal): ${dbReadErr.message}`);
+        console.error(`[Analyze] Profile Read Error: ${dbReadErr.message}`);
       }
 
-      // Step B: Generate Plan (Resilient)
+      // Generate Smart Schedule
       try {
-        console.log(`[Analyze] Calling AI to generate study plan...`);
+        console.log(`[Analyze] Generating Smart Schedule...`);
         generatedPlan = await aiManager.generateStudyPlan({
-          examName: analysis.title || "Multi-Document Analysis",
+          examName: profileData.examName || analysis.title || "Study Plan",
+          examTime: profileData.examTime || "09",
           topics: analysis.topics || [],
-          studyHoursPerDay: studyHoursPerDay,
+          confidenceLevels: profileData.confidenceLevels || {},
+          studyHoursPerDay: profileData.studyHoursPerDay || 4,
+          preferredTime: profileData.preferredTime || "morning",
           days: targetDays
         });
-        console.log(`[Analyze] Study plan generated successfully.`);
       } catch (aiErr) {
         console.error(`[Analyze] Plan Generation Error: ${aiErr.message}`);
       }
 
-      // Step C: Sync to DB (Background)
+      // Sync to DB in background
       if (generatedPlan) {
         (async () => {
           try {
-            console.log(`[Analyze] Background sync starting...`);
-            
-            // Local Persistence
             persistenceService.save(userId, 'studyPlan', 'current', generatedPlan);
-            persistenceService.save(userId, 'aiAnalysis', Date.now().toString(), analysis);
+            persistenceService.save(userId, 'aiAnalysis', 'latest', analysis);
 
-            const firestoreData = { 
+            await db.collection('users').doc(userId).collection('aiAnalysis').doc('latest').set({ 
               ...analysis, 
               topics: JSON.stringify(analysis.topics || []),
               createdAt: admin.firestore.FieldValue.serverTimestamp() 
-            };
-            await db.collection('users').doc(userId).collection('aiAnalysis').add(firestoreData);
+            });
 
-            const firestorePlan = {
+            await db.collection('users').doc(userId).collection('studyPlan').doc('current').set({
               ...generatedPlan,
               schedule: JSON.stringify(generatedPlan.schedule || []),
               updatedAt: admin.firestore.FieldValue.serverTimestamp()
-            };
-            await db.collection('users').doc(userId).collection('studyPlan').doc('current').set(firestorePlan);
-            console.log("✅ [Analyze] Background sync complete.");
+            });
           } catch (dbError) {
-            console.error("[Analyze] Background sync failed:", dbError.message);
+            console.error("[Analyze] Sync failed:", dbError.message);
           }
         })();
       }

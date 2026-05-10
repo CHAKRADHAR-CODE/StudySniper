@@ -23,7 +23,11 @@ const LoginPage = () => {
       toast.success("Intelligence Sync Complete.");
       navigate("/dashboard");
     } catch (err) {
-      toast.error("Login failed. Check your credentials.");
+      if (err.message === "EMAIL_NOT_VERIFIED") {
+        toast.error("Email not verified. Please check your inbox and verify your email to continue.");
+      } else {
+        toast.error("Login failed. Check your credentials.");
+      }
     } finally {
       setLoading(false);
     }

@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import AppLayout from "../components/layout/AppLayout";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getProgress, getStudyPlan, toggleTaskCompletion, getOnboardingData, deleteObjective } from "../firebase/firestore";
+import { getProgress, getStudyPlan, toggleTaskCompletion, getOnboardingData, deleteObjective, getAIAnalyses } from "../firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -18,7 +18,7 @@ const StatCard = ({ icon: Icon, label, value, color, trend }) => (
       <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5">
         <Icon size={22} className="text-[var(--text-secondary)]" />
       </div>
-      {trend && value !== "0" && value !== "0%" && (
+      {trend && value !== "0" && value !== "0%" && value !== "Null" && (
         <span className="text-[10px] font-bold text-[var(--green)] uppercase tracking-widest flex items-center gap-1">
           <TrendingUp size={12} /> {trend}
         </span>
@@ -43,6 +43,7 @@ const Dashboard = () => {
   });
   const [currentPlan, setCurrentPlan] = useState(null);
   const [onboarding, setOnboarding] = useState(null);
+  const [pdfCount, setPdfCount] = useState(0);
 
   const [completedTasks, setCompletedTasks] = useState([]);
 
@@ -52,12 +53,14 @@ const Dashboard = () => {
         let prog = null;
         let plan = null;
         let onboard = null;
+        let analyses = [];
 
         try {
-          [prog, plan, onboard] = await Promise.all([
+          [prog, plan, onboard, analyses] = await Promise.all([
             getProgress(user.uid),
             getStudyPlan(user.uid),
-            getOnboardingData(user.uid)
+            getOnboardingData(user.uid),
+            getAIAnalyses(user.uid)
           ]);
         } catch (dbErr) {
           console.warn("Firestore fetch failed on dashboard, checking local storage...", dbErr);
@@ -93,6 +96,7 @@ const Dashboard = () => {
           setCurrentPlan(plan);
         }
         if (onboard) setOnboarding(onboard);
+        if (analyses) setPdfCount(analyses.length);
       } catch (err) {
         console.error("Dashboard data load failed", err);
       } finally {
@@ -120,14 +124,94 @@ const Dashboard = () => {
     try {
       await deleteObjective(user.uid);
       setOnboarding(null);
+      setCurrentPlan(null);
+      setCompletedTasks([]);
+      setStats({ preparedness: 0, studyHours: 0, streak: 0, topicsCovered: 0 });
       toast.success("Objective deleted successfully.");
     } catch (err) {
       toast.error("Failed to delete objective.");
     }
   };
 
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
+  
+  useEffect(() => {
+    if (!onboarding?.examDate) return;
+    
+    const timer = setInterval(() => {
+      const examTime = onboarding.examTime || "09:00";
+      const target = new Date(`${onboarding.examDate}T${examTime}`);
+      const now = new Date();
+      const diff = target - now;
+      
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0 });
+        clearInterval(timer);
+        return;
+      }
+      
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        mins: Math.floor((diff / (1000 * 60)) % 60),
+        secs: Math.floor((diff / 1000) % 60)
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [onboarding]);
+
   // Extract today's tasks from plan if available
   const todayTasks = currentPlan?.schedule?.[0]?.tasks || [];
+  
+  // Real-time calculations
+  const totalTasks = currentPlan?.schedule?.reduce((acc, day) => acc + (day.tasks?.length || 0), 0) || 0;
+  const prepPercentage = currentPlan && totalTasks > 0 ? Math.round((completedTasks.length / totalTasks) * 100) : 0;
+  
+  let calculatedStudyHours = 0;
+  let calculatedStreak = 0;
+
+  if (currentPlan?.schedule) {
+    let streakCount = 0;
+    for (let d = 0; d < currentPlan.schedule.length; d++) {
+      const day = currentPlan.schedule[d];
+      let dayCompleted = true;
+      if (day.tasks && day.tasks.length > 0) {
+        day.tasks.forEach((task, tIdx) => {
+           const tId = `task-${d}-${tIdx}`;
+           if (completedTasks.includes(tId)) {
+             const durationStr = String(task.duration || "0h").toLowerCase();
+             let totalHrs = 0;
+             if (durationStr.includes("h") && durationStr.includes("m")) {
+                const parts = durationStr.split("h");
+                const h = parseFloat(parts[0].replace(/[^\d.]/g, '')) || 0;
+                const m = parseFloat(parts[1].replace(/[^\d.]/g, '')) || 0;
+                totalHrs = h + (m / 60);
+             } else if (durationStr.includes("m") && !durationStr.includes("h")) {
+                const m = parseFloat(durationStr.replace(/[^\d.]/g, '')) || 0;
+                totalHrs = m / 60;
+             } else {
+                const h = parseFloat(durationStr.replace(/[^\d.]/g, '')) || 0;
+                totalHrs = h;
+             }
+             calculatedStudyHours += totalHrs;
+           } else {
+             dayCompleted = false;
+           }
+        });
+      } else {
+        dayCompleted = false;
+      }
+      if (dayCompleted) {
+        streakCount++;
+      } else {
+        break;
+      }
+    }
+    calculatedStreak = streakCount;
+  }
+  
+  calculatedStudyHours = Math.round(calculatedStudyHours * 10) / 10;
 
   return (
     <AppLayout>
@@ -140,26 +224,26 @@ const Dashboard = () => {
               Welcome back, <span className="text-[var(--text-secondary)]">{profile?.displayName?.split(' ')[0] || "Scholar"}</span>
             </h1>
             <p className="text-[var(--text-secondary)] font-medium text-lg">
-              {stats.preparedness > 0 
-                ? `Your academic performance is currently optimized at ${stats.preparedness}%.`
+              {currentPlan && prepPercentage > 0 
+                ? `Your academic schedule is currently ${prepPercentage}% complete.`
                 : "Initialize your first analysis to begin tracking performance."}
             </p>
           </div>
-          <button onClick={() => navigate("/upload")} className="btn-primary py-4 px-10 shadow-2xl">
+          <button onClick={() => navigate("/onboarding")} className="btn-primary py-4 px-10 shadow-2xl">
             Quick Analysis <Sparkles size={18} />
           </button>
         </header>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard icon={Brain} label="Preparedness" value={`${stats.preparedness + (completedTasks.length * 2)}%`} color="var(--purple)" trend="+0%" />
-          <StatCard icon={Clock} label="Study Hours" value={stats.studyHours} color="var(--blue)" trend="+0h" />
-          <StatCard icon={Target} label="Current Streak" value={`${stats.streak}d`} color="var(--green)" />
-          <StatCard icon={BookOpen} label="Topics Analyzed" value={stats.topicsCovered} color="var(--amber)" />
+          <StatCard icon={Brain} label="Preparedness" value={currentPlan ? `${prepPercentage}%` : "Null"} color="var(--purple)" trend={currentPlan ? "+0%" : null} />
+          <StatCard icon={Clock} label="Study Hours" value={currentPlan ? `${calculatedStudyHours}h` : "Null"} color="var(--blue)" trend={currentPlan && calculatedStudyHours > 0 ? "+1h" : null} />
+          <StatCard icon={Target} label="Current Streak" value={currentPlan ? `${calculatedStreak}d` : "Null"} color="var(--green)" />
+          <StatCard icon={BookOpen} label="PDFs Analyzed" value={pdfCount} color="var(--amber)" />
         </div>
 
         {/* Exam Intelligence Card */}
-        {onboarding && (
+        {onboarding && currentPlan && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -185,9 +269,23 @@ const Dashboard = () => {
             </div>
             <div className="text-center md:text-right relative z-10">
                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-2">Countdown to Exam</p>
-               <div className="text-5xl font-display font-bold text-[var(--text-primary)]">
-                  {Math.max(0, Math.ceil((new Date(onboarding.examDate) - new Date()) / (1000 * 60 * 60 * 24)))}
-                  <span className="text-xl text-[var(--text-muted)] ml-2">Days</span>
+               <div className="flex gap-4 justify-center md:justify-end">
+                  <div className="text-center">
+                    <p className="text-4xl font-display font-bold text-[var(--text-primary)]">{timeLeft.days}</p>
+                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Days</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-4xl font-display font-bold text-[var(--text-primary)]">{String(timeLeft.hours).padStart(2, '0')}</p>
+                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Hrs</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-4xl font-display font-bold text-[var(--text-primary)]">{String(timeLeft.mins).padStart(2, '0')}</p>
+                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Min</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-4xl font-display font-bold text-[var(--purple)]">{String(timeLeft.secs).padStart(2, '0')}</p>
+                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Sec</p>
+                  </div>
                </div>
             </div>
           </motion.div>
@@ -208,7 +306,7 @@ const Dashboard = () => {
             <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[32px] overflow-hidden min-h-[300px] flex flex-col shadow-2xl">
                {todayTasks.length > 0 ? (
                  todayTasks.map((item, i) => {
-                   const taskId = `task-${i}`;
+                   const taskId = `task-0-${i}`; // Match StudyPlan's indexing for Day 1
                    const isDone = completedTasks.includes(taskId);
                    return (
                      <div 
@@ -244,7 +342,7 @@ const Dashboard = () => {
                        <p className="font-bold text-xl">No active schedule</p>
                        <p className="text-sm text-[var(--text-muted)] max-w-xs">Upload a syllabus to generate your AI-optimized study path.</p>
                     </div>
-                    <button onClick={() => navigate("/upload")} className="btn-outline py-2 px-6 text-xs">Upload Syllabus</button>
+                    <button onClick={() => navigate("/onboarding")} className="btn-outline py-2 px-6 text-xs">Configure your Arsenal</button>
                  </div>
                )}
             </div>

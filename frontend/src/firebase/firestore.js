@@ -46,10 +46,13 @@ const clearLocal = async (uid, collection) => {
 export const deleteObjective = async (uid) => {
   await deleteDoc(doc(db, "users", uid, "profile", "onboarding"));
   await deleteDoc(doc(db, "users", uid, "examPrepPlan", "current"));
+  await deleteDoc(doc(db, "users", uid, "studyPlan", "current"));
+  await deleteDoc(doc(db, "users", uid, "progress", "current"));
   await updateDoc(doc(db, "users", uid, "profile", "info"), {
     onboardingComplete: false,
     updatedAt: serverTimestamp(),
   });
+  localStorage.removeItem(`progress_${uid}`);
   await clearLocal(uid); // Wipe everything for this user
 };
 
@@ -104,11 +107,14 @@ export const deleteStudyPlan = async (uid) => {
   try {
     await axios.delete(`${API_BASE_URL}/delete-study-plan/${uid}`);
     localStorage.removeItem(`studyPlan_${uid}`);
+    localStorage.removeItem(`progress_${uid}`);
   } catch (err) {
     console.error("Delete Study Plan Error:", err);
     // Fallback
     await deleteDoc(doc(db, "users", uid, "studyPlan", "current"));
+    await deleteDoc(doc(db, "users", uid, "progress", "current"));
     await clearLocal(uid, 'studyPlan');
+    localStorage.removeItem(`progress_${uid}`);
   }
 };
 
@@ -117,10 +123,10 @@ import { arrayUnion, arrayRemove } from "firebase/firestore";
 
 export const toggleTaskCompletion = async (uid, taskId, isCompleted) => {
   const ref = doc(db, "users", uid, "progress", "current");
-  await updateDoc(ref, {
+  await setDoc(ref, {
     completedTasks: isCompleted ? arrayUnion(taskId) : arrayRemove(taskId),
     updatedAt: serverTimestamp()
-  });
+  }, { merge: true });
 };
 
 export const updateProgress = async (uid, progressData) => {

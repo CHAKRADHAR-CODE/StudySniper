@@ -3,22 +3,28 @@ import Groq from "groq-sdk";
 
 console.log("Groq Service: Initializing Core & Chat Engines...");
 
-const coreGroq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+const GROQ_KEYS = [
+  process.env.GROQ_API_KEY,
+  process.env.GROQ_CHAT_API_KEY,
+  process.env.GROQ_API_KEY_3
+].filter(Boolean);
 
-const chatGroq = new Groq({
-  apiKey: process.env.GROQ_CHAT_API_KEY || process.env.GROQ_API_KEY,
-});
+let currentKeyIndex = 0;
+
+const getGroqClient = () => {
+  const key = GROQ_KEYS[currentKeyIndex];
+  currentKeyIndex = (currentKeyIndex + 1) % GROQ_KEYS.length;
+  return new Groq({ apiKey: key });
+};
 
 export const groqService = {
   chat: async (messages, modelType = "fast", useChatKey = false) => {
-    const client = useChatKey ? chatGroq : coreGroq;
+    const client = getGroqClient();
     
     // Modern stable models for 2026 (Removed decommissioned ones)
     const models = modelType === "fast" 
-      ? ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]
-      : ["llama-3.1-8b-instant", "gemma2-9b-it", "llama3-8b-8192"];
+      ? ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+      : ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
 
     let lastError = null;
 

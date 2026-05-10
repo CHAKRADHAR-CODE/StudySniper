@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Calendar, Clock, CheckCircle2, ChevronRight, 
   Brain, Sparkles, Target, AlertCircle, Loader2,
-  FileQuestion, Trash2
+  FileQuestion, Trash2, Download, TrendingUp,
+  BarChart3, Layout, Layers, Zap, Info, ShieldAlert
 } from "lucide-react";
 import AppLayout from "../components/layout/AppLayout";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -12,6 +13,10 @@ import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip, ResponsiveContainer, Cell, AreaChart, Area
+} from 'recharts';
 
 const StudyPlan = () => {
   const { user } = useAuth();
@@ -19,12 +24,11 @@ const StudyPlan = () => {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [completedTasks, setCompletedTasks] = useState([]);
+  const [activeDay, setActiveDay] = useState(0);
 
   useEffect(() => {
     if (!user) return;
-    
     setLoading(true);
-    // Real-time listener for "instant reflection"
     const unsubscribe = onSnapshot(doc(db, "users", user.uid, "studyPlan", "current"), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
@@ -34,7 +38,6 @@ const StudyPlan = () => {
         setPlan(data);
         setLoading(false);
       } else {
-        // Try local storage if firestore is empty
         const localPlan = localStorage.getItem(`studyPlan_${user.uid}`);
         if (localPlan) {
           setPlan(JSON.parse(localPlan));
@@ -44,11 +47,9 @@ const StudyPlan = () => {
         setLoading(false);
       }
     });
-
     return () => unsubscribe();
   }, [user]);
 
-  // Fetch progress separately or add another snapshot if needed
   useEffect(() => {
     if (!user) return;
     const fetchProg = async () => {
@@ -71,13 +72,14 @@ const StudyPlan = () => {
   };
 
   const handleDeletePlan = async () => {
-    if (window.confirm("Are you sure you want to delete this study plan? All progress stats will be reset.")) {
+    if (window.confirm("Are you sure you want to delete this study plan?")) {
       try {
         setLoading(true);
         await deleteStudyPlan(user.uid);
         setPlan(null);
-        toast.success("Schedule deleted successfully");
-        navigate("/upload");
+        setCompletedTasks([]);
+        toast.success("Schedule deleted");
+        navigate("/onboarding");
       } catch (err) {
         toast.error("Failed to delete plan");
       } finally {
@@ -86,12 +88,37 @@ const StudyPlan = () => {
     }
   };
 
+  const handleDownloadPDF = () => {
+    window.print();
+  };
+
+  const progressData = useMemo(() => {
+    if (!plan || !plan.schedule) return [];
+    return plan.schedule.map((day, idx) => {
+      const dayTasks = day.tasks || [];
+      const done = dayTasks.filter((_, tIdx) => completedTasks.includes(`task-${idx}-${tIdx}`)).length;
+      return {
+        name: `Day ${idx + 1}`,
+        completed: done,
+        total: dayTasks.length,
+        percent: dayTasks.length > 0 ? (done / dayTasks.length) * 100 : 0
+      };
+    });
+  }, [plan, completedTasks]);
+
+  const overallProgress = useMemo(() => {
+    if (progressData.length === 0) return 0;
+    const total = progressData.reduce((acc, d) => acc + d.total, 0);
+    const completed = progressData.reduce((acc, d) => acc + d.completed, 0);
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  }, [progressData]);
+
   if (loading) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center py-48 space-y-4">
-           <Loader2 className="animate-spin text-[var(--accent)]" size={40} />
-           <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Building Your Path...</p>
+           <div className="w-12 h-12 border-2 border-[var(--purple)] border-t-transparent rounded-full animate-spin" />
+           <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Assembling Neural Dashboard...</p>
         </div>
       </AppLayout>
     );
@@ -100,105 +127,190 @@ const StudyPlan = () => {
   if (!plan || !plan.schedule) {
     return (
       <AppLayout>
-        <div className="max-w-4xl mx-auto py-20 space-y-12">
-          <header className="text-center space-y-4">
-            <div className="badge">Planning Infrastructure</div>
-            <h1 className="text-5xl font-display font-bold">Your schedule is <span className="text-[var(--text-secondary)]">empty.</span></h1>
-            <p className="text-[var(--text-secondary)] text-xl">Upload a syllabus to generate a week-by-week neural study plan.</p>
-          </header>
-
-          <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[40px] p-20 flex flex-col items-center text-center space-y-8 shadow-2xl relative overflow-hidden">
-             <div className="absolute inset-0 bg-grid opacity-5" />
-             <div className="w-24 h-24 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-center text-[var(--text-muted)] relative z-10">
-                <FileQuestion size={40} />
-             </div>
-             <div className="space-y-2 relative z-10">
-                <h3 className="text-2xl font-bold">No active plan found</h3>
-                <p className="text-[var(--text-secondary)] max-w-sm mx-auto">Our AI needs a syllabus to understand your exam requirements and build an optimized path.</p>
-             </div>
-             <button onClick={() => navigate("/upload")} className="btn-primary py-4 px-10 text-base shadow-2xl relative z-10">Generate Plan Now</button>
+        <div className="max-w-4xl mx-auto py-20 text-center space-y-8">
+          <div className="w-20 h-20 rounded-3xl bg-white/5 mx-auto flex items-center justify-center text-[var(--text-muted)]">
+            <Layout size={32} />
           </div>
+          <div className="space-y-2">
+            <h2 className="text-4xl font-display font-bold text-[var(--text-primary)]">Schedule <span className="text-[var(--text-secondary)]">Required.</span></h2>
+            <p className="text-[var(--text-secondary)] text-lg">Please complete the setup and upload your syllabus to generate a plan.</p>
+          </div>
+          <button onClick={() => navigate("/onboarding")} className="btn-primary py-4 px-10">Initialize Engine</button>
         </div>
       </AppLayout>
     );
   }
 
+  const currentDayData = plan.schedule[activeDay] || plan.schedule[0];
+
   return (
     <AppLayout>
-      <div className="space-y-12">
-        {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+      <div className="space-y-12 pb-20 printable-area">
+        {/* Header Section */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 no-print">
           <div className="space-y-4">
-             <div className="badge border-[var(--green)]/30 text-[var(--green)]">Neural Optimization Active</div>
-             <h1 className="text-5xl font-display font-bold tracking-tight text-[var(--text-primary)]">Academic <span className="text-[var(--text-secondary)]">Schedule.</span></h1>
-             <p className="text-[var(--text-secondary)] text-xl font-medium">Strategic Path: Cryptographically optimized for maximum retention.</p>
+             <div className="badge border-[var(--purple)]/30 text-[var(--purple)]">Active Intelligence Schedule</div>
+             <h1 className="text-6xl font-display font-bold tracking-tighter">Study <span className="text-[var(--text-secondary)]">Command.</span></h1>
+             <p className="text-[var(--text-secondary)] text-xl font-medium">Synchronized with your {plan.analytics?.studyIntensity || "Beast Mode"} profile.</p>
           </div>
-          <div className="flex items-center gap-4">
-             <button onClick={handleDeletePlan} className="btn-outline border-red-500/30 text-red-400 hover:bg-red-500/10 py-4 px-8 shadow-2xl flex items-center gap-2">
-               <Trash2 size={18} /> Delete Plan
+          <div className="flex items-center gap-3">
+             <button onClick={() => navigate("/onboarding")} className="btn-outline border-[var(--purple)]/20 text-[var(--purple)] py-4 px-8 flex items-center gap-2">
+               <Zap size={18} /> Redo Setup
              </button>
-             <button onClick={() => navigate("/upload")} className="btn-primary py-4 px-10 shadow-2xl">Re-Optimize</button>
+             <button onClick={handleDownloadPDF} className="btn-outline border-[var(--border)] py-4 px-8 flex items-center gap-2">
+               <Download size={18} /> Export PDF
+             </button>
+             <button onClick={handleDeletePlan} className="btn-outline border-red-500/20 text-red-400 hover:bg-red-500/5 py-4 px-6">
+               <Trash2 size={18} />
+             </button>
           </div>
         </header>
 
-        {/* Schedule Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
-          {plan.schedule.map((dayData, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className={`bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[24px] p-4 flex flex-col h-full group hover:border-[var(--accent)]/30 transition-all ${
-                i === 0 ? "border-[var(--accent)]/50 ring-1 ring-[var(--accent)]/20" : ""
-              }`}
-            >
-               <div className="flex justify-between items-center mb-4">
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${i === 0 ? "text-[var(--accent)]" : "text-[var(--text-muted)]"}`}>
-                    Day {i + 1}
-                  </span>
-                  {i === 0 && <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />}
-               </div>
-               
-               <div className="space-y-3 flex-1">
-                  {dayData.tasks?.map((task, j) => {
-                    const taskId = `task-${i}-${j}`;
-                    const isDone = completedTasks.includes(taskId);
-                    return (
-                      <div 
-                        key={j} 
-                        onClick={() => toggleTask(taskId)}
-                        className={`p-4 rounded-2xl border transition-all cursor-pointer relative group/task ${
+        {/* Main Content Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Timeline / Day Selector */}
+          <div className="lg:col-span-3 space-y-6 no-print">
+            <div className="flex items-center justify-between px-2">
+               <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Timeline</p>
+               <Layers size={14} className="text-[var(--text-muted)]" />
+            </div>
+            <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+              {plan.schedule.map((day, idx) => {
+                const isActive = activeDay === idx;
+                const isDayDone = progressData[idx]?.percent === 100;
+                return (
+                  <button 
+                    key={idx}
+                    onClick={() => setActiveDay(idx)}
+                    className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between group ${
+                      isActive 
+                      ? "bg-[var(--purple)] border-[var(--purple)] text-white shadow-xl shadow-[var(--purple)]/10" 
+                      : "bg-[var(--bg-secondary)] border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--purple)]/30"
+                    }`}
+                  >
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-tighter">Day {idx + 1}</p>
+                      <p className={`text-[10px] mt-0.5 ${isActive ? 'text-white/70' : 'text-[var(--text-muted)]'}`}>
+                        {day.label || `Phase ${Math.floor(idx/3) + 1}`}
+                      </p>
+                    </div>
+                    {isDayDone && <CheckCircle2 size={16} className={isActive ? "text-white" : "text-[var(--green)]"} />}
+                    {isActive && !isDayDone && <ChevronRight size={16} />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Day Detail & Tasks */}
+          <div className="lg:col-span-6 space-y-8">
+             <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[40px] p-10 space-y-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 text-[120px] font-black text-white/5 pointer-events-none italic">
+                   {activeDay + 1}
+                </div>
+                
+                <div className="space-y-2 relative z-10">
+                   <h2 className="text-3xl font-display font-bold text-[var(--text-primary)]">
+                      {currentDayData.label || `Day ${activeDay + 1} Operations`}
+                   </h2>
+                </div>
+
+                <div className="space-y-4 relative z-10">
+                   {currentDayData.tasks?.map((task, tidx) => {
+                     const id = `task-${activeDay}-${tidx}`;
+                     const isDone = completedTasks.includes(id);
+                     return (
+                       <motion.div 
+                        key={tidx}
+                        layout
+                        onClick={() => toggleTask(id)}
+                        className={`p-6 rounded-3xl border transition-all cursor-pointer flex items-center justify-between group/task ${
                           isDone 
-                          ? "bg-[var(--green)]/5 border-[var(--green)]/20" 
-                          : "bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--accent)]/40 hover:bg-[var(--bg-card)] shadow-sm"
+                          ? "bg-[var(--green)]/5 border-[var(--green)]/20 opacity-60" 
+                          : "bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--purple)]/40 hover:bg-[var(--bg-card)]"
                         }`}
-                      >
-                         <div className="flex justify-between items-start gap-2">
-                           <div className="flex-1">
-                             <p className={`text-[11px] font-bold leading-tight transition-all ${isDone ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
-                               {task.topic || task.task}
-                             </p>
-                             {!isDone && task.goal && <p className="text-[9px] text-[var(--text-muted)] italic mt-1 leading-tight">{task.goal}</p>}
-                           </div>
-                           {isDone && <CheckCircle2 size={14} className="text-[var(--green)] flex-shrink-0" />}
-                         </div>
-                         {!isDone && (
-                           <p className="text-[9px] text-[var(--accent)] font-black mt-2 uppercase tracking-tighter opacity-70">
-                             {task.duration || "2 Hours"}
-                           </p>
-                         )}
-                      </div>
-                    );
-                  })}
-               </div>
-            </motion.div>
-          ))}
-        </div>
+                       >
+                          <div className="flex items-center gap-6">
+                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                               isDone ? "bg-[var(--green)] text-black" : "bg-white/5 text-[var(--text-secondary)] group-hover/task:bg-[var(--purple)] group-hover/task:text-white"
+                             }`}>
+                                {isDone ? <CheckCircle2 size={24} /> : <span className="text-[10px] font-black">{task.time}:00</span>}
+                             </div>
+                             <div>
+                                <h4 className={`text-lg font-bold ${isDone ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text-primary)]'}`}>
+                                   {task.task}
+                                </h4>
+                                <div className="flex items-center gap-3 mt-1">
+                                   <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--purple)]">{task.type || 'Deep Dive'}</span>
+                                   <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">|</span>
+                                   <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{task.duration}</span>
+                                </div>
+                             </div>
+                          </div>
+                          {!isDone && <div className="w-8 h-8 rounded-full border border-[var(--border)] flex items-center justify-center group-hover/task:border-[var(--purple)] transition-all">
+                             <ChevronRight size={14} className="text-[var(--text-muted)] group-hover/task:text-[var(--purple)]" />
+                          </div>}
+                       </motion.div>
+                     );
+                   })}
+                </div>
+             </div>
+          </div>
 
-      </div>
-    </AppLayout>
-  );
-};
-
-export default StudyPlan;
+          {/* Analytics Sidebar */}
+          <div className="lg:col-span-3 space-y-8 no-print">
+             <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[32px] p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                   <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Progress Curve</p>
+                   <BarChart3 size={14} className="text-[var(--text-muted)]" />
+                </div>
+                <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={progressData.slice(0, 7)}>
+                      <Bar dataKey="percent" radius={[4, 4, 0, 0]}>
+                        {progressData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.percent === 100 ? 'var(--green)' : 'var(--purple)'} fillOpacity={0.6} />
+                        ))}
+                      </Bar>
+                      <XAxis dataKey="name" hide />
+                      <Tooltip 
+                        contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', fontSize: '10px' }}
+                        itemStyle={{ color: 'var(--text-primary)' }}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-3">
+                   <div className="flex justify-between text-xs">
+                      <span className="text-[var(--text-muted)] font-medium">Tasks Completed</span>
+                      <span className="font-bold">{completedTasks.length} / {progressData.reduce((acc, d) => acc + d.total, 0)}</span>
+                   </div>
+                   <div className="flex justify-between text-xs">
+                      <span className="text-[var(--text-muted)] font-medium">Velocity</span>
+                      <span className="font-bold text-[var(--green)]">Steady</span>
+                   </div>
+                </div>
+             </div>
+           </div>
+         </div>
+ 
+         <style dangerouslySetInnerHTML={{ __html: `
+           @media print {
+             .no-print { display: none !important; }
+             .printable-area { background: white !important; color: black !important; padding: 0 !important; }
+             .bg-[var(--bg-secondary)], .bg-[var(--bg-surface)] { background: transparent !important; border: 1px solid #eee !important; }
+             .text-[var(--text-primary)], .text-[var(--text-secondary)] { color: black !important; }
+             .text-[var(--purple)] { color: #af52de !important; }
+             .rounded-[40px], .rounded-[32px] { border-radius: 12px !important; }
+             body { background: white !important; }
+             header, .badge { margin-bottom: 20px !important; }
+             .btn-outline, .btn-primary { display: none !important; }
+           }
+         `}} />
+       </div>
+     </AppLayout>
+   );
+ };
+ 
+ export default StudyPlan;

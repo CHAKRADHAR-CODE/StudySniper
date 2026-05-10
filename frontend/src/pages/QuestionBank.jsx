@@ -61,6 +61,7 @@ const QuestionBank = () => {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
       await axios.delete(`${API_BASE_URL}/delete-question-bank/${user.uid}/${id}`);
       if (analysis?.id === id) setAnalysis(null);
+      setHistory(prev => prev.filter(item => item.id !== id));
       toast.success("Analysis removed");
     } catch (err) {
       toast.error("Delete failed");
