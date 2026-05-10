@@ -1,0 +1,253 @@
+{
+  "users": {
+    "dky941gsqVbdGfYCTCmqJZLIdNd2": {
+      "questionBanks": {
+        "1778401372056": {
+          "title": "Operating Systems: Most Repeated",
+          "patterns": [
+            {
+              "pattern": "Operating System Structure",
+              "trend": "Asked every year",
+              "significance": "Understanding the structure of an operating system is crucial for understanding its functions and behavior."
+            },
+            {
+              "pattern": "System Calls",
+              "trend": "Repeatedly asked in exams",
+              "significance": "System calls are a fundamental concept in operating systems, and understanding them is essential for programming and system administration."
+            },
+            {
+              "pattern": "Process Scheduling Algorithms",
+              "trend": "Frequently asked in exams",
+              "significance": "Process scheduling algorithms are a critical component of operating systems, and understanding them is essential for ensuring efficient system performance."
+            },
+            {
+              "pattern": "Memory Management",
+              "trend": "Repeatedly asked in exams",
+              "significance": "Memory management is a crucial aspect of operating systems, and understanding paging, segmentation, and other memory management techniques is essential for system administration."
+            },
+            {
+              "pattern": "Operating System Types",
+              "trend": "Asked in exams",
+              "significance": "Understanding the different types of operating systems is essential for selecting the appropriate operating system for a particular application or environment."
+            }
+          ],
+          "repeatedQuestions": [
+            {
+              "question": "Explain the structure of an Operating System. Compare monolithic, layered, and microkernel structures.",
+              "frequency": "Repeated every year",
+              "years": [
+                "2022",
+                "2023"
+              ]
+            },
+            {
+              "question": "Explain the different types of system calls with examples.",
+              "frequency": "Repeated every year",
+              "years": [
+                "2022",
+                "2023"
+              ]
+            },
+            {
+              "question": "Explain process scheduling and discuss various scheduling criteria.",
+              "frequency": "Repeated every year",
+              "years": [
+                "2022",
+                "2023"
+              ]
+            },
+            {
+              "question": "Explain paging and segmentation in memory management.",
+              "frequency": "Repeated every year",
+              "years": [
+                "2022",
+                "2023"
+              ]
+            }
+          ],
+          "mostImportant": [
+            {
+              "question": "Explain the structure of an Operating System. Compare monolithic, layered, and microkernel structures.",
+              "priority": "High",
+              "reason": "Understanding the structure of an operating system is crucial for understanding its functions and behavior."
+            },
+            {
+              "question": "Explain the different types of system calls with examples.",
+              "priority": "High",
+              "reason": "System calls are a fundamental concept in operating systems, and understanding them is essential for programming and system administration."
+            },
+            {
+              "question": "Explain process scheduling and discuss various scheduling criteria.",
+              "priority": "High",
+              "reason": "Process scheduling algorithms are a critical component of operating systems, and understanding them is essential for ensuring efficient system performance."
+            }
+          ],
+          "summary": "The most repeated topics in operating systems exams include operating system structure, system calls, process scheduling algorithms, and memory management. Understanding these concepts is essential for system administration and programming. Students should focus on these topics to improve their chances of success in exams.",
+          "local_saved_at": "2026-05-10T08:22:52.056Z"
+        }
+      },
+      "studyPlan": {
+        "current": {
+          "schedule": [
+            {
+              "day": 1,
+              "tasks": [
+                {
+                  "task": "Definition and Main Functions of an Operating System",
+                  "goal": "Understand the definition and main functions of an operating system",
+                  "duration": "2h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Read notes on Definition and Main Functions of an Operating System",
+                  "goal": "Complete reading of notes on the topic",
+                  "duration": "1h",
+                  "time": "02:00 PM"
+                },
+                {
+                  "task": "Practice problems on Definition and Main Functions of an Operating System",
+                  "goal": "Solve 10 practice problems on the topic",
+                  "duration": "2h",
+                  "time": "04:00 PM"
+                }
+              ]
+            },
+            {
+              "day": 2,
+              "tasks": [
+                {
+                  "task": "Structure of an Operating System",
+                  "goal": "Understand the structure of an operating system",
+                  "duration": "2h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Read notes on Structure of an Operating System",
+                  "goal": "Complete reading of notes on the topic",
+                  "duration": "1h",
+                  "time": "02:00 PM"
+                },
+                {
+                  "task": "Watch video on Structure of an Operating System",
+                  "goal": "Watch a video on the topic",
+                  "duration": "1h",
+                  "time": "04:00 PM"
+                }
+              ]
+            },
+            {
+              "day": 3,
+              "tasks": [
+                {
+                  "task": "Types of Operating Systems",
+                  "goal": "Understand the different types of operating systems",
+                  "duration": "2h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Read notes on Types of Operating Systems",
+                  "goal": "Complete reading of notes on the topic",
+                  "duration": "1h",
+                  "time": "02:00 PM"
+                },
+                {
+                  "task": "Practice problems on Types of Operating Systems",
+                  "goal": "Solve 10 practice problems on the topic",
+                  "duration": "2h",
+                  "time": "04:00 PM"
+                }
+              ]
+            },
+            {
+              "day": 4,
+              "tasks": [
+                {
+                  "task": "System Calls",
+                  "goal": "Understand system calls and their importance",
+                  "duration": "2h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Read notes on System Calls",
+                  "goal": "Complete reading of notes on the topic",
+                  "duration": "1h",
+                  "time": "02:00 PM"
+                },
+                {
+                  "task": "Practice problems on System Calls",
+                  "goal": "Solve 10 practice problems on the topic",
+                  "duration": "2h",
+                  "time": "04:00 PM"
+                }
+              ]
+            },
+            {
+              "day": 5,
+              "tasks": [
+                {
+                  "task": "Revision of all topics",
+                  "goal": "Revision of all topics covered so far",
+                  "duration": "4h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Practice problems on all topics",
+                  "goal": "Solve 20 practice problems on all topics",
+                  "duration": "4h",
+                  "time": "02:00 PM"
+                }
+              ]
+            },
+            {
+              "day": 6,
+              "tasks": [
+                {
+                  "task": "Practice problems on all topics",
+                  "goal": "Solve 20 practice problems on all topics",
+                  "duration": "4h",
+                  "time": "09:00 AM"
+                },
+                {
+                  "task": "Mock exam",
+                  "goal": "Take a mock exam to assess knowledge",
+                  "duration": "3h",
+                  "time": "02:00 PM"
+                }
+              ]
+            }
+          ],
+          "insights": "Stay focused and motivated, and make sure to take breaks to avoid burnout. Practice problems are essential to understanding the material, so allocate sufficient time for them. Review and revise regularly to reinforce your learning.",
+          "local_saved_at": "2026-05-10T08:23:51.265Z"
+        }
+      },
+      "aiAnalysis": {
+        "1778401431266": {
+          "title": "Operating Systems",
+          "topics": [
+            {
+              "name": "Definition and Main Functions of an Operating System",
+              "importance": 80,
+              "description": "An Operating System is system software that works as an interface between the user and computer hardware. It manages hardware, software, and provides services to run programs."
+            },
+            {
+              "name": "Structure of an Operating System",
+              "importance": 90,
+              "description": "The structure of an OS defines how its components are organized and how they interact with each other to manage processes, memory, files, and devices."
+            },
+            {
+              "name": "Types of Operating Systems",
+              "importance": 85,
+              "description": "There are different types of operating systems, including batch, time-sharing, distributed, and real-time operating systems."
+            },
+            {
+              "name": "System Calls",
+              "importance": 80,
+              "description": "A system call is a way for a program to request services from the Operating System kernel."
+            }
+          ],
+          "local_saved_at": "2026-05-10T08:23:51.266Z"
+        }
+      }
+    }
+  }
+}
