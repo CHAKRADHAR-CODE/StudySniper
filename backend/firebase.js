@@ -6,24 +6,32 @@ import 'dotenv/config';
 // ─── Firebase Admin Initialization ──────────────────────────────────────────
 try {
   if (admin.apps.length === 0) {
-    const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'serviceAccount.json';
-    const fullPath = path.resolve(process.cwd(), serviceAccountPath);
-    
-    console.log(`[Firebase] Attempting to load: ${fullPath}`);
-    
-    if (!fs.existsSync(fullPath)) {
-      throw new Error(`Service account file not found at ${fullPath}`);
+    let serviceAccount;
+
+    // 1. Try Environment Variable (Secure Production Method)
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      console.log(`[Firebase] Loading credentials from secure Environment Variable`);
+      try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+      } catch (e) {
+        throw new Error("Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON env variable");
+      }
+    } 
+    // 2. Fallback to local file (Local Development Method)
+    else {
+      const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'serviceAccount.json';
+      const fullPath = path.resolve(process.cwd(), serviceAccountPath);
+      console.log(`[Firebase] Attempting to load local file: ${fullPath}`);
+      
+      if (!fs.existsSync(fullPath)) {
+        throw new Error(`Service account not found in env vars or local file at ${fullPath}`);
+      }
+      serviceAccount = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
     }
 
-    const serviceAccount = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
-    
-    // Robust Private Key Normalization
+    // Ensure newlines in private_key are handled correctly
     if (serviceAccount.private_key) {
-      // Handles both escaped \n and literal newlines, ensuring standard format
-      serviceAccount.private_key = serviceAccount.private_key
-        .replace(/\\n/g, '\n')
-        .replace(/"/g, '')
-        .trim();
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
 
     console.log(`[Firebase] Project ID: ${serviceAccount.project_id}`);
