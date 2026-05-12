@@ -19,7 +19,7 @@ try {
     } 
     // 2. Fallback to local file (Local Development Method)
     else {
-      const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'serviceAccount.json';
+      const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || '/etc/secrets/serviceAccount.json';
       const fullPath = path.resolve(process.cwd(), serviceAccountPath);
       console.log(`[Firebase] Attempting to load local file: ${fullPath}`);
       
