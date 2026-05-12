@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Using relative path for the Vite proxy
-const API_BASE_URL = "/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const aiService = {
   analyzeSyllabus: async (filesOrContent, userId, subjects = []) => {
