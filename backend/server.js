@@ -111,30 +111,40 @@ app.post('/api/analyze', upload.array('files', 10), async (req, res) => {
   try {
     if (req.files && req.files.length > 0) {
       console.log(`[Analyze] Processing ${req.files.length} files...`);
-      const extractions = await Promise.all(req.files.map(file => {
+      
+      const fileData = await Promise.all(req.files.map(async file => {
+        let text = "";
         if (file.mimetype === 'application/pdf') {
-          return parsePdf(file.buffer, file.originalname);
+          text = await parsePdf(file.buffer, file.originalname);
         } else {
-          return Promise.resolve(file.buffer.toString('utf-8'));
+          text = file.buffer.toString('utf-8');
         }
+        return { filename: file.originalname, text };
       }));
-      combinedContent += "\n" + extractions.join("\n\n--- DOCUMENT BREAK ---\n\n");
+
+      // Fast Validation
+      if (subjects.length > 0) {
+        console.log(`[Analyze] Validating subjects: ${subjects.join(', ')}`);
+        const validations = await Promise.all(fileData.map(data => aiManager.validateSubjectFast(data.text, subjects)));
+        const invalidIndex = validations.findIndex(v => !v.isValid);
+        
+        if (invalidIndex !== -1) {
+           console.log(`[Analyze] Validation failed for file: ${fileData[invalidIndex].filename}`);
+           return res.status(422).json({ 
+             error: 'Validation failed', 
+             message: "The uploaded PDF does not belong to the selected subject." 
+           });
+        }
+      }
+
+      combinedContent += "\n" + fileData.map(d => d.text).join("\n\n--- DOCUMENT BREAK ---\n\n");
     }
 
     if (!combinedContent.trim()) return res.status(400).json({ error: 'No content found in uploads or text body' });
 
-    console.log(`[Analyze] Content extracted. Sending to AI for multi-factor analysis...`);
+    console.log(`[Analyze] Content extracted and validated. Sending to AI for multi-factor analysis...`);
     const analysis = await aiManager.analyzeSyllabus(combinedContent, subjects);
-    console.log(`[Analyze] AI Response: isValid=${analysis.isValid}, Title=${analysis.title}`);
-    
-    // Validation Logic
-    if (subjects.length > 0 && analysis.isValid === false) {
-      return res.status(422).json({ 
-        error: 'Validation failed', 
-        message: analysis.validationMessage || "The uploaded PDF does not belong to the selected subject.",
-        analysis 
-      });
-    }
+    console.log(`[Analyze] AI Response: Title=${analysis.title}`);
 
     let generatedPlan = null;
     if (userId) {
@@ -147,26 +157,32 @@ app.post('/api/analyze', upload.array('files', 10), async (req, res) => {
         if (onboardingSnap.exists) {
           profileData = onboardingSnap.data();
           if (profileData.examDate) {
-            const examDate = new Date(profileData.examDate);
-            examDate.setHours(0, 0, 0, 0);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const diffDays = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
-            if (diffDays > 0) targetDays = diffDays; // Use exactly the remaining days
+            const examTime = profileData.examTime || "09:00";
+            const target = new Date(`${profileData.examDate}T${examTime}`);
+            const now = new Date();
+            const diff = target - now;
+            
+            if (diff > 0) {
+              const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+              targetDays = diffDays > 0 ? diffDays : 1; // Minimum 1 day schedule
+            }
           }
         } else {
           // Fallback to old path just in case
           const profileSnap = await db.collection('users').doc(userId).get();
           if (profileSnap.exists) {
             profileData = profileSnap.data();
-            if (profileData.examDate) {
-               const examDate = new Date(profileData.examDate);
-               examDate.setHours(0, 0, 0, 0);
-               const today = new Date();
-               today.setHours(0, 0, 0, 0);
-               const diffDays = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
-               if (diffDays > 0) targetDays = diffDays;
-            }
+             if (profileData.examDate) {
+               const examTime = profileData.examTime || "09:00";
+               const target = new Date(`${profileData.examDate}T${examTime}`);
+               const now = new Date();
+               const diff = target - now;
+               
+               if (diff > 0) {
+                 const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+                 targetDays = diffDays > 0 ? diffDays : 1;
+               }
+             }
           }
         }
       } catch (dbReadErr) {

@@ -13,15 +13,8 @@ export const aiManager = {
     const prompt = `Perform a deep-dive neural analysis of the provided educational content.
     ${subjectsContext}
     
-    CRITICAL VALIDATION:
-    - You MUST set "isValid" to false if the uploaded content does NOT specifically and primarily relate to these subjects: ${subjects.join(", ")}.
-    - If the user uploads a document for a different subject (e.g., Biology instead of Math), set "isValid" to false and return "The uploaded PDF does not belong to the selected subject." in the "validationMessage".
-    - ONLY validated PDFs are allowed to continue. Be extremely strict.
-    
     Return ONLY a JSON object with this structure:
     {
-      "isValid": boolean,
-      "validationMessage": "string",
       "title": "Overall Document Title",
       "topics": [
         {
@@ -64,6 +57,39 @@ export const aiManager = {
     }
   },
 
+  // FAST VALIDATION
+  async validateSubjectFast(content, subjects = []) {
+    if (!subjects || subjects.length === 0) return { isValid: true };
+    const truncated = content.substring(0, 1500);
+    const prompt = `CRITICAL VALIDATION:
+    You are a strict subject matter classifier.
+    Does the following document text clearly and primarily belong to ANY of these subjects: [${subjects.join(", ")}]?
+    For example, if the document is about "C++" or "Programming" but the selected subject is "Operating Systems", you MUST return false.
+    If the text is completely unrelated or belongs to a different subject area, set isValid to false.
+    Return ONLY a valid JSON object:
+    {
+      "isValid": boolean
+    }
+    Text: ${truncated}`;
+
+    try {
+      let response;
+      try {
+        response = await groqService.chat([{ role: "user", content: prompt }], "fast");
+      } catch (e) {
+        response = await geminiService.analyzeContent(prompt, "json");
+      }
+      const parsed = this.parseJSON(response);
+      if (typeof parsed.isValid === 'string') {
+        parsed.isValid = parsed.isValid.toLowerCase() === 'true';
+      }
+      return parsed;
+    } catch (e) {
+      console.warn(`[AI Manager] Fast validation failed, defaulting to true: ${e.message}`);
+      return { isValid: true };
+    }
+  },
+
   // CHATBOT
   async getChatResponse(messages) {
     try {
@@ -100,15 +126,16 @@ export const aiManager = {
     
     PLANNING LOGIC (STRICT RULES):
     1. EXACT DAYS MATCH: You MUST generate EXACTLY ${totalDays} day items. Not one less, not one more. If ${totalDays} is 7, you must output 7 days.
-    2. TIME DISTRIBUTION: Distribute the provided topics evenly across ALL ${totalDays} days. DO NOT compress all topics into the first few days.
-    3. STUDY HOURS: Each day MUST contain exactly ${studentData.studyHoursPerDay} hours of study sessions. Do not exceed this limit.
-    4. CONFIDENCE WEIGHTING: Allocate more time to subjects with low confidence.
-    5. BREAKS: Add brief breaks automatically within each daily session.
-    6. REVISION CYCLE: Use the final 1 to 2 days explicitly for revision, mock tests, and reviewing important concepts.
+    2. FILL ALL DAYS: If you run out of new topics, you MUST fill the remaining days with "Revision", "Mock Tests", "Past Papers", and "Weakness Review". DO NOT STOP EARLY.
+    3. TIME DISTRIBUTION: Distribute the provided topics evenly across ALL ${totalDays} days. DO NOT compress all topics into the first few days.
+    4. STUDY HOURS: Each day MUST contain exactly ${studentData.studyHoursPerDay} hours of study sessions. Do not exceed this limit.
+    5. CONFIDENCE WEIGHTING: Allocate more time to subjects with low confidence.
+    6. BREAKS: Add brief breaks automatically within each daily session.
+    7. REVISION CYCLE: Use the final days explicitly for revision, mock tests, and reviewing important concepts.
     
     OUTPUT FORMAT:
     - Return ONLY a valid JSON object.
-    - The "schedule" array MUST contain EXACTLY ${totalDays} objects.
+    - The "schedule" array MUST contain EXACTLY ${totalDays} objects. The length of the array must be exactly ${totalDays}.
     - Day numbering MUST go from 1 to ${totalDays} sequentially.
     
     JSON STRUCTURE:
@@ -135,7 +162,7 @@ export const aiManager = {
       }
     }
     
-    CRITICAL: YOU MUST OUTPUT EVERY DAY FROM 1 TO ${totalDays} INDIVIDUALLY. SHORTENING THE SCHEDULE IS A CRITICAL FAILURE.`;
+    CRITICAL FATAL ERROR WARNING: YOU MUST OUTPUT EVERY SINGLE DAY FROM 1 TO ${totalDays} INDIVIDUALLY. IF THE SCHEDULE ARRAY DOES NOT HAVE EXACTLY ${totalDays} ITEMS, THE SYSTEM WILL CORRUPT. DO NOT SHORTEN OR SUMMARIZE THE SCHEDULE.`;
 
     try {
       let response;
@@ -250,6 +277,7 @@ export const aiManager = {
   parseJSON(text) {
     try {
       if (!text) throw new Error("Empty response");
+      if (typeof text === 'object') return text;
       const cleaned = text.replace(/```json|```/g, "").trim();
       const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
       return JSON.parse(jsonMatch ? jsonMatch[0] : cleaned);

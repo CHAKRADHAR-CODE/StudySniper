@@ -72,6 +72,10 @@ const Upload = () => {
       toast.loading("Analyzing documents & validating subjects...", { id: "analysis" });
       const response = await aiService.analyzeSyllabus(files, user.uid, subjects);
       
+      if (response.plan) {
+        localStorage.setItem(`studyPlan_${user.uid}`, JSON.stringify(response.plan));
+      }
+      
       toast.success("Intelligence extraction complete!", { id: "analysis" });
       navigate("/study-plan");
     } catch (err) {

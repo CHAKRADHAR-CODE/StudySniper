@@ -40,6 +40,10 @@ const QuestionBank = () => {
     }
   };
 
+  const removeFile = (index) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const startAnalysis = async () => {
     if (files.length === 0) return;
     setIsAnalyzing(true);
@@ -56,7 +60,7 @@ const QuestionBank = () => {
   };
 
   const handleDeleteHistory = async (id, e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
       await axios.delete(`${API_BASE_URL}/delete-question-bank/${user.uid}/${id}`);
@@ -90,6 +94,11 @@ const QuestionBank = () => {
               <div className="flex items-center justify-between no-print">
                  <h2 className="text-3xl font-display font-bold">Intelligence <span className="text-[var(--blue)]">Report.</span></h2>
                  <div className="flex gap-2">
+                   {analysis?.id && (
+                     <button onClick={() => handleDeleteHistory(analysis.id)} className="px-6 py-3 bg-[var(--red)]/10 text-[var(--red)] border border-[var(--red)]/20 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-[var(--red)]/20 transition-all flex items-center gap-2">
+                        <Trash2 size={16} /> Delete
+                     </button>
+                   )}
                    <button onClick={() => setAnalysis(null)} className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all">New Analysis</button>
                    <button onClick={handlePrint} className="flex items-center gap-2 px-6 py-3 bg-[var(--blue)] text-black rounded-2xl text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all">
                       <Printer size={16} /> Save as PDF
@@ -172,12 +181,18 @@ const QuestionBank = () => {
                         <div className="w-full max-w-2xl space-y-8">
                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                              {files.map((f, i) => (
-                               <div key={i} className="flex items-center gap-4 p-4 bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl">
+                               <div key={i} className="flex items-center gap-4 p-4 bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl relative group/item">
                                  <div className="w-10 h-10 rounded-lg bg-[var(--blue)]/10 flex items-center justify-center text-[var(--blue)]"><FileText size={20} /></div>
                                  <div className="flex-1 text-left overflow-hidden">
                                    <p className="text-sm font-bold truncate">{f.name}</p>
                                    <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-tight">{(f.size / 1024).toFixed(0)} KB</p>
                                  </div>
+                                 <button 
+                                   onClick={() => removeFile(i)}
+                                   className="opacity-0 group-hover/item:opacity-100 transition-opacity p-1 text-[var(--text-muted)] hover:text-[var(--red)] absolute right-4"
+                                 >
+                                   <X size={16} />
+                                 </button>
                                </div>
                              ))}
                            </div>
